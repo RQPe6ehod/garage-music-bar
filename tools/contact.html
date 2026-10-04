@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>RQ Coding — Арман К</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #DCEEFA;
+    --bg-deep: #F3FAFF;
+    --panel: #FFFFFF;
+    --line: #C7E3F5;
+    --gold: #2F8FCB;
+    --cream: #1B3A52;
+    --muted: #6E93AC;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    background-image: radial-gradient(circle at 15% 0%, rgba(47,143,203,0.14), transparent 45%),
+                       radial-gradient(circle at 100% 30%, rgba(47,143,203,0.10), transparent 40%);
+    color: var(--cream);
+    font-family:'Inter', sans-serif;
+    min-height: 100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding: 32px 20px;
+  }
+  .card{
+    width: 100%; max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 40px 28px 32px;
+    text-align:center;
+    box-shadow: 0 20px 50px rgba(47,143,203,.18);
+  }
+  .avatar{
+    width: 108px; height: 108px; border-radius:50%;
+    border: 1.5px solid var(--gold);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    margin: 0 auto 22px; gap: 2px;
+  }
+  .avatar .rq{ font-family:'Fraunces', serif; font-weight:700; font-size: 30px; color: var(--gold); line-height:1; }
+  .avatar .coding{ font-family:'Inter', sans-serif; font-weight:600; font-size: 10px; letter-spacing:.14em; color: var(--muted); }
+  h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size: 28px; margin: 0 0 4px;
+    color: var(--cream);
+  }
+  .role{
+    font-size: 13.5px; color: var(--muted); letter-spacing:.03em; margin-bottom: 26px;
+  }
+  .actions{ display:flex; flex-direction:column; gap: 12px; margin-bottom: 22px; }
+  .btn{
+    display:flex; align-items:center; gap: 12px;
+    background: var(--bg-deep); border: 1px solid var(--line);
+    border-radius: 12px; padding: 13px 16px;
+    color: var(--cream); text-decoration:none;
+    font-size: 15px; font-weight:500;
+    transition: border-color .2s ease, transform .15s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn.whatsapp:hover, .btn.whatsapp:active{ border-color: #25D366; }
+  .btn.telegram:hover, .btn.telegram:active{ border-color: #29A9EA; }
+  .btn.email:hover, .btn.email:active{ border-color: var(--gold); }
+  .btn .icon{ width:26px; height:26px; flex-shrink:0; }
+  .btn .label{ flex:1; text-align:left; }
+  .btn .label small{ display:block; color: var(--muted); font-size:11.5px; font-weight:400; margin-top:1px; }
+  .btn .arrow{ color: var(--muted); font-size: 16px; }
+
+  .divider{ height:1px; background: var(--line); margin: 22px 0 18px; }
+  .tagline{ font-size: 12.5px; color: var(--muted); line-height:1.5; }
+  .tagline .gold{ color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="avatar">
+    <span class="rq">RQ</span>
+    <span class="coding">CODING</span>
+  </div>
+  <h1>Арман К</h1>
+  <div class="role">+7 747 111 0222</div>
+
+  <div class="actions">
+    <a class="btn whatsapp" href="https://wa.me/77471110222" target="_blank" rel="noopener">
+      <svg class="icon" viewBox="0 0 32 32" fill="none"><path d="M16 3C9.1 3 3.5 8.6 3.5 15.5c0 2.5.7 4.8 1.9 6.8L3 29l6.9-2.3c1.9 1 4.1 1.6 6.1 1.6 6.9 0 12.5-5.6 12.5-12.5S22.9 3 16 3z" fill="#25D366"/><path d="M22.4 19.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2s-.8 1.1-1 1.3-.4.2-.7.1c-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-2-1.8-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.5-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6s-.7-1.7-1-2.3c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.2.2 2 3.1 4.9 4.2 2.8 1.1 2.8.8 3.3.7.5-.1 1.6-.7 1.8-1.3.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.4z" fill="#fff"/></svg>
+      <span class="label">WhatsApp<small>Написать сообщение</small></span>
+      <span class="arrow">→</span>
+    </a>
+    <a class="btn telegram" href="https://t.me/+77471110222" target="_blank" rel="noopener">
+      <svg class="icon" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" fill="#29A9EA"/><path d="M8.5 15.8l13-5c.6-.2 1.2.2.9.9l-2.2 10.4c-.2.8-.7.9-1.3.6l-3.6-2.7-1.7 1.6c-.2.2-.4.3-.7.3l.2-3.6 6.6-6c.3-.2-.1-.4-.4-.2l-8.1 5.1-3.5-1.1c-.8-.2-.8-.8.1-1.2z" fill="#fff"/></svg>
+      <span class="label">Telegram<small>Написать сообщение</small></span>
+      <span class="arrow">→</span>
+    </a>
+    <a class="btn email" href="mailto:arman@kuatov.kz">
+      <svg class="icon" viewBox="0 0 32 32" fill="none"><rect x="4" y="7" width="24" height="18" rx="3" stroke="#2F8FCB" stroke-width="2"/><path d="M5 9l11 8 11-8" stroke="#2F8FCB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="label">Email<small>arman@kuatov.kz</small></span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <div class="divider"></div>
+  <div class="tagline">Разработка сайтов, цифровых меню и веб‑приложений<br><span class="gold">RQ Coding</span></div>
+</div>
+
+</body>
+</html>
