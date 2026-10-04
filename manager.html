@@ -3623,7 +3623,7 @@ function renderMenuEditor(){
       const comboTo = (item.parts || [])[0] ? ((item.parts[0].dest === 'bar') ? 'в бар' : 'на кухню') : '';
       html += `<div class="menu-item-row">
         ${photo
-          ? `<img class="mi-photo${busy}" src="${photo}" alt="" loading="lazy" onclick="menuPhotoMenu('${cat.id}','${item.id}')" title="Фото">`
+          ? `<img class="mi-photo${busy}" src="${photo}" alt="" loading="lazy" onerror="if(!this.dataset.r){this.dataset.r=1;this.src+=(this.src.includes('?')?'&':'?')+'r='+Date.now();}" onclick="menuPhotoMenu('${cat.id}','${item.id}')" title="Фото">`
           : `<span class="mi-photo empty${busy}" onclick="pickMenuPhoto('${cat.id}','${item.id}')" title="Добавить фото">📷</span>`}
         <span class="mi-main"><span class="mi-name">${name}</span><div class="mi-sub">${[item.price, item.price2, item.price3].filter(Boolean).join(' / ')} тг</div>${combo ? `<div class="mi-combo">Комбо, ${comboTo}: ${combo}</div>` : ''}</span>
         <span class="mi-price">${[item.price, item.price2, item.price3].filter(Boolean).join(' / ')} тг</span>
@@ -3641,13 +3641,21 @@ function renderMenuEditor(){
 function addMenuCategory(){
   showPrompt("Название раздела (например: Салаты):", "", (title) => {
     if(!title || !title.trim()) return;
-    socket.send(JSON.stringify({type:"add_menu_category", dest:menuDest, title:title.trim()}));
+    showPrompt("Название раздела на казахском (пусто — гости увидят русское):", "", (kk) => {
+      if(kk===null) return;
+      socket.send(JSON.stringify({type:"add_menu_category", dest:menuDest, title:title.trim(), title_kk:kk.trim()}));
+    });
   });
 }
 function renameMenuCategoryPrompt(categoryId, current){
   showPrompt("Новое название раздела:", current, (title) => {
     if(title===null || !title.trim()) return;
-    socket.send(JSON.stringify({type:"rename_menu_category", dest:menuDest, categoryId, title:title.trim()}));
+    const cat = (menu[menuDest] || []).find(c => c.id === categoryId);
+    const curKk = cat && cat.title.ru === title.trim() ? (cat.title.kk || '') : '';
+    showPrompt("Название раздела на казахском (пусто — гости увидят русское):", curKk, (kk) => {
+      if(kk===null) return;
+      socket.send(JSON.stringify({type:"rename_menu_category", dest:menuDest, categoryId, title:title.trim(), title_kk:kk.trim()}));
+    });
   });
 }
 function deleteMenuCategoryPrompt(categoryId, title){
@@ -3672,6 +3680,17 @@ function parseParts(text, homeDest){
     const n = /^(.*?)\s*\(([^()]*)\)\s*$/.exec(rest);
     if(n && n[1]){ rest = n[1].trim(); note = n[2].trim(); }
     return { dest: otherDest, qty, name: rest, ...(note ? { note } : {}) };
+  });
+}
+// Kazakh texts for the guest menu: empty = guests see the Russian text
+function kkPrompts(curName, curDesc, hasDesc, onDone){
+  showPrompt("Название на казахском (пусто — гости увидят русское):", curName || '', (nameKk) => {
+    if(nameKk === null) return;
+    if(!hasDesc){ onDone({ name: nameKk.trim(), desc: '' }); return; }
+    showPrompt("Описание на казахском (пусто — гости увидят русское):", curDesc || '', (descKk) => {
+      if(descKk === null) return;
+      onDone({ name: nameKk.trim(), desc: descKk.trim() });
+    });
   });
 }
 function comboPrompt(current, onDone){
@@ -3779,8 +3798,10 @@ function addMenuItemPrompt(categoryId){
         const proceed = (price3) => {
           showPrompt("Состав/описание (можно оставить пустым):", "", (desc) => {
             if(desc===null) return;
-            comboPrompt("", (parts) => {
-              socket.send(JSON.stringify({type:"add_menu_item", dest:menuDest, categoryId, name:name.trim(), price:price.trim(), price2:price2.trim(), price3:(price3||"").trim(), desc:(desc||'').trim(), parts}));
+            kkPrompts('', '', !!desc.trim(), (kk) => {
+              comboPrompt("", (parts) => {
+                socket.send(JSON.stringify({type:"add_menu_item", dest:menuDest, categoryId, name:name.trim(), price:price.trim(), price2:price2.trim(), price3:(price3||"").trim(), desc:(desc||'').trim(), parts, name_kk: kk.name, desc_kk: kk.desc}));
+              });
             });
           });
         };
@@ -3807,8 +3828,13 @@ function editMenuItemPrompt(categoryId, itemId, currentName, currentPrice, curre
           showPrompt("Состав/описание (можно оставить пустым):", currentDesc||"", (desc) => {
             if(desc===null) return;
             const cur = findMenuItemById(categoryId, itemId);
-            comboPrompt(partsToText(cur && cur.parts), (parts) => {
-              socket.send(JSON.stringify({type:"update_menu_item", dest:menuDest, categoryId, itemId, name:name.trim(), price:price.trim(), price2:price2.trim(), price3:(price3||"").trim(), desc:desc.trim(), parts}));
+            // a changed Russian text makes the old Kazakh one stale -> start empty
+            const kkName = cur && cur.name.ru === name.trim() ? (cur.name.kk || '') : '';
+            const kkDesc = cur && cur.desc && cur.desc.ru === desc.trim() ? (cur.desc.kk || '') : '';
+            kkPrompts(kkName, kkDesc, !!desc.trim(), (kk) => {
+              comboPrompt(partsToText(cur && cur.parts), (parts) => {
+                socket.send(JSON.stringify({type:"update_menu_item", dest:menuDest, categoryId, itemId, name:name.trim(), price:price.trim(), price2:price2.trim(), price3:(price3||"").trim(), desc:desc.trim(), parts, name_kk: kk.name, desc_kk: kk.desc}));
+              });
             });
           });
         };
