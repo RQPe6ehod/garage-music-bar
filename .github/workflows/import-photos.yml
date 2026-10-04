@@ -1,0 +1,35 @@
+name: Import kamiqr photos
+
+# Run manually: repo -> Actions -> "Import kamiqr photos" -> Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Re-download photos that are already in menu-img/"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests pillow
+      - run: python tools/import_photos.py ${{ inputs.force && '--force' || '' }}
+      - name: Commit photos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add menu-img
+          if git diff --cached --quiet; then
+            echo "No new photos."
+          else
+            git commit -m "Import menu photos from kamiqr"
+            git push
+          fi
