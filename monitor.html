@@ -19,22 +19,22 @@
   document.head.appendChild(l);
 })();
 </script>
-<meta name="theme-color" content="#8A7FD6">
+<meta name="theme-color" content="#182D34">
 <link rel="apple-touch-icon" href="/icons/icon-monitor-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Garage Монитор">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#1A1526; --bg-deep:#120E1C; --panel:#241D36; --line:#382C4F;
-    --gold:#8A7FD6; --cream:#EDEAF7; --muted:#9086B0; --green:#4CAF7D; --red:#D9534F;
+    --bg:#182D34; --bg-deep:#0F1F25; --panel:#22393F; --line:#364B52;
+    --gold:#A08CFF; --cream:#F3F4F5; --muted:#8D9CA2; --green:#4CAF7D; --red:#D9534F;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
   body{ background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; min-height:100vh; }
   header{ position:sticky; top:0; z-index:20; background:var(--bg-deep); border-bottom:1px solid var(--line); padding:16px 18px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-  header h1{ font-family:'Fraunces',serif; font-size:20px; margin:0 0 2px; }
+  header h1{ font-family:'Unbounded','Inter',sans-serif; font-size:17.2px; margin:0 0 2px; }
   header .conn{ font-size:13px; color:var(--muted); }
   header .conn.on{ color:var(--green); }
   header .conn.off{ color:var(--red); }
@@ -46,7 +46,7 @@
 
   .lock{ position:fixed; inset:0; background:var(--bg-deep); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; animation: fadeIn .25s ease; }
   .lock-box{ width:100%; max-width:300px; text-align:center; animation: popIn .3s cubic-bezier(.2,1,.3,1); }
-  .lock-box h2{ font-family:'Fraunces',serif; color:var(--cream); margin-bottom:6px; }
+  .lock-box h2{ font-family:'Unbounded','Inter',sans-serif; color:var(--cream); margin-bottom:6px; }
   .lock-box p{ color:var(--muted); font-size:15px; margin-bottom:18px; }
   .lock-box input{ width:100%; text-align:center; font-size:24px; letter-spacing:8px; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--cream); margin-bottom:12px; }
   .lock-box button{ width:100%; padding:13px; border:none; border-radius:12px; background:var(--gold); color:var(--bg-deep); font-weight:700; font-size:16.5px; }
