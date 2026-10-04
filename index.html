@@ -473,10 +473,15 @@ function imgSrc(key){
 function photoUrl(it, full){
   return imgSrc(full ? (it.imgFull || it.img) : (it.img || it.imgFull));
 }
+// A phone that opened the menu before the photo files were published may
+// still hold the old "not found" answer in its cache — so the first failure
+// retries the same photo with a cache-busting query before giving up.
+function bust(url){ return url + (url.includes('?') ? '&' : '?') + 'r=' + Date.now(); }
 function photoFallback(img){
   const it = PHOTO_ITEMS[img.dataset.id];
+  if(it && !img.dataset.retried){ img.dataset.retried = "1"; img.src = bust(photoUrl(it, false)); return; }
   const full = it && photoUrl(it, true);
-  if(full && img.src !== full && !img.dataset.triedFull){ img.dataset.triedFull = "1"; img.src = full; return; }
+  if(full && !img.dataset.triedFull){ img.dataset.triedFull = "1"; img.src = bust(full); return; }
   const row = img.closest('.item'); if(row) row.classList.remove('has-photo');
   img.remove();
 }
