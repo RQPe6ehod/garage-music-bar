@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ru" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Garage Music Bar — Меню</title>
+<meta name="theme-color" content="#182D34">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #182D34;
+    --bg-deep: #0F1F25;
+    --panel: #22393F;
+    --line: #364B52;
+    --gold: #FDBB00;
+    --gold-soft: #A67C06;
+    --cream: #F3F4F5;
+    --cream-dim: #C3CCCF;
+    --muted: #8D9CA2;
+    --shadow: rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    background-image: radial-gradient(circle at 15% 0%, rgba(253,187,0,0.07), transparent 45%),
+                       radial-gradient(circle at 100% 30%, rgba(253,187,0,0.05), transparent 40%);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 48px;
+  }
+  ::selection{ background: var(--gold); color: var(--bg-deep); }
+
+  header.top{
+    position: sticky; top:0; z-index: 30;
+    background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 20px 0;
+  }
+
+  .lang-switch-wrap{ display:flex; justify-content:center; align-items:center; gap:10px; position:relative; margin-bottom: 8px; }
+  .lang-btn{
+    display:flex; align-items:center; gap:6px;
+    background: var(--panel); border: 1px solid var(--line); color: var(--cream-dim);
+    padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight:600; cursor:pointer;
+  }
+  .lang-btn svg{ opacity:.85; }
+  .review-btn{
+    display:flex; align-items:center; gap:6px;
+    background: var(--gold); color: var(--bg-deep);
+    padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight:700; cursor:pointer;
+    text-decoration:none; box-shadow: 0 3px 10px rgba(253,187,0,.35);
+  }
+  .lang-menu{
+    display:none; position:absolute; top: 36px; z-index:40;
+    background: var(--panel); border:1px solid var(--line); border-radius: 12px;
+    overflow:hidden; box-shadow: 0 10px 30px var(--shadow);
+    min-width: 150px;
+  }
+  .lang-menu.open{ display:block; }
+  .lang-menu button{
+    display:block; width:100%; text-align:left; padding: 10px 16px;
+    background:transparent; border:none; color: var(--cream); font-size: 13.5px; cursor:pointer;
+  }
+  .lang-menu button:hover, .lang-menu button.active{ background: rgba(253,187,0,0.15); color: var(--gold); }
+  .lang-menu button + button{ border-top: 1px solid var(--line); }
+
+  .credit-link{
+    display:inline-flex; align-items:center; gap: 4px;
+    color: var(--gold); text-decoration:none; font-weight:600;
+    font-size: 10.5px; letter-spacing:.03em; margin-bottom: 10px;
+  }
+  .credit-link:hover{ text-decoration:underline; }
+  .credit-icon{ flex-shrink:0; opacity:.9; }
+
+  .brand-row{
+    display:flex; align-items:center; justify-content:space-between; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-mark{
+    width:40px; height:40px; border-radius:9px 9px 3px 3px;
+    border: 1.5px solid var(--gold);
+    background: repeating-linear-gradient(180deg, transparent 0 6px, rgba(253,187,0,.16) 6px 7px);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Unbounded', 'Inter', sans-serif; font-weight:700; font-size:17px; color: var(--gold);
+  }
+  .brand-text{ line-height:1.05; }
+  .brand-text .name{ font-family:'Unbounded', 'Inter', sans-serif; font-weight:700; font-size: 16px; letter-spacing:-0.01em; color: var(--cream); }
+  .brand-text .sub{ font-size: 11px; color: var(--muted); letter-spacing: .06em; }
+  .svc-note{ font-size: 10.5px; color: var(--muted); text-align:right; line-height:1.3; max-width: 130px; }
+
+  .mode-switch{
+    display:flex; background: var(--bg-deep); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px; gap:3px; margin-bottom: 14px;
+  }
+  .mode-switch button{
+    flex:1; border:none; background:transparent; color: var(--muted);
+    font-family:'Unbounded', 'Inter', sans-serif; font-size: 15px; font-weight: 600;
+    padding: 9px 0; border-radius: 999px; cursor:pointer;
+    transition: background .25s ease, color .25s ease;
+  }
+  .mode-switch button.active{ background: var(--gold); color: var(--bg-deep); }
+
+  .search-wrap{ position:relative; margin-bottom: 12px; }
+  .search-wrap input{
+    width:100%; background: var(--bg-deep); border: 1px solid var(--line);
+    color: var(--cream); padding: 10px 14px 10px 34px; border-radius: 10px;
+    font-family:'Inter',sans-serif; font-size: 14px; outline: none;
+  }
+  .search-wrap input::placeholder{ color: var(--muted); }
+  .search-wrap input:focus{ border-color: var(--gold-soft); }
+  .search-wrap svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); opacity:.55; }
+
+  nav.chips{
+    display:flex; gap:8px; overflow-x:auto; padding-bottom: 12px;
+    scrollbar-width:none;
+  }
+  nav.chips::-webkit-scrollbar{ display:none; }
+  nav.chips button{
+    flex: 0 0 auto; white-space:nowrap;
+    background: var(--panel); border: 1px solid var(--line); color: var(--cream-dim);
+    font-family:'Inter',sans-serif; font-size: 12.5px; font-weight:500;
+    padding: 7px 13px; border-radius: 999px; cursor:pointer;
+  }
+  nav.chips button.active{ background: var(--gold); border-color: var(--gold); color: var(--bg-deep); font-weight:600; }
+
+  main{ padding: 22px 20px 0; max-width: 640px; margin: 0 auto; }
+
+  section.category{ margin-bottom: 34px; scroll-margin-top: 208px; }
+  .cat-head{ display:flex; align-items:baseline; gap:10px; margin-bottom: 4px; }
+  .cat-head h2{
+    font-family:'Unbounded', 'Inter', sans-serif; font-weight:600; font-size: 19px; letter-spacing:-0.01em; margin:0;
+    color: var(--gold);
+  }
+  .cat-head .rule{ flex:1; height:1px; background: var(--line); }
+  .cat-note{ font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+
+  .item{ padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .item:last-child{ border-bottom:none; }
+  .item-row{ display:flex; align-items:baseline; gap:8px; }
+  .item-num{ color: var(--gold-soft); font-size: 12px; font-weight:600; min-width: 15px; flex-shrink:0; }
+  .item-name{ font-size: 15.5px; font-weight:500; color: var(--cream); }
+  .dots{ flex:1; border-bottom: 1.5px dotted var(--line); transform: translateY(-3px); min-width: 14px; }
+  .item-price{ font-family:'Unbounded', 'Inter', sans-serif; font-weight:500; font-size: 13px; color: var(--cream); white-space:nowrap; flex-shrink:0; }
+  .item-price small{ font-size:11px; font-weight:400; color: var(--muted); }
+  .item.disabled{ opacity:.5; }
+  .item.disabled .item-name{ text-decoration: line-through; }
+  .unavail-tag{ font-size: 10px; color: var(--gold); border:1px solid var(--gold); border-radius:999px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; }
+  .item-desc{ font-size: 12.5px; color: var(--muted); margin-top: 3px; padding-left: 23px; line-height:1.4; }
+  .item.has-photo{ display:flex; gap:12px; align-items:flex-start; }
+  .item.has-photo .item-body{ flex:1; min-width:0; }
+  .item.has-photo .item-desc{ padding-left:0; }
+  .item-photo{ width:78px; height:78px; flex-shrink:0; object-fit:cover; border-radius:10px; background: var(--panel); border:1px solid var(--line); cursor: zoom-in; }
+  .item.disabled .item-photo{ filter: grayscale(1); }
+  .photo-lb{ position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center; padding: 20px; padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(20px, env(safe-area-inset-bottom)); background: rgba(0,0,0,.86); }
+  .photo-lb.open{ display:flex; animation: lbIn .18s ease-out; }
+  @keyframes lbIn{ from{ opacity:0; } to{ opacity:1; } }
+  .photo-lb figure{ margin:0; width:100%; max-width:560px; max-height:100%; display:flex; flex-direction:column; background: var(--bg-deep); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .photo-lb img{ width:100%; max-height:62vh; object-fit:contain; background:#000; display:block; }
+  .photo-lb figcaption{ padding: 14px 16px 16px; overflow:auto; }
+  .photo-lb .lb-top{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+  .photo-lb .lb-name{ font-size:17px; font-weight:600; color: var(--cream); }
+  .photo-lb .lb-price{ color: var(--gold); font-weight:600; white-space:nowrap; }
+  .photo-lb .lb-desc{ margin-top:6px; font-size:13.5px; line-height:1.45; color: var(--cream-dim); }
+  .photo-lb .lb-close{ position:absolute; top: max(12px, env(safe-area-inset-top)); right:12px; width:40px; height:40px; border-radius:50%; border:none; background: rgba(255,255,255,.14); color:#fff; font-size:24px; line-height:1; cursor:pointer; }
+
+  .empty-state{ text-align:center; color: var(--muted); font-size: 14px; padding: 60px 20px; }
+
+  footer.foot{
+    text-align:center; color: var(--muted); font-size: 12px; margin-top: 30px; padding: 0 20px;
+    line-height: 1.6;
+  }
+  footer.foot .gold{ color: var(--gold); font-family:'Unbounded', 'Inter', sans-serif; font-size:15px; }
+
+  @keyframes slideUpIn{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
+  .call-bar{
+    position: fixed; left:0; right:0; bottom:0; z-index: 60;
+    display:flex; gap:10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, var(--bg-deep) 60%, transparent);
+    animation: slideUpIn .35s cubic-bezier(.2,1,.3,1);
+  }
+  .call-waiter-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+    background: #FDBB00; color:#1C1500; border:none; border-radius: 999px;
+    padding: 14px 16px; font-family:'Inter', sans-serif; font-weight:700; font-size: 14.5px;
+    box-shadow: 0 10px 30px rgba(224,184,76,.35);
+  }
+  .call-waiter-btn:disabled{ opacity:.6; }
+  @keyframes popIn{ from{ opacity:0; transform:scale(.94) translateY(4px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+  .call-bill-btn{
+    animation: popIn .28s cubic-bezier(.2,1,.3,1);
+    flex:0 0 auto; display:flex; align-items:center; gap:6px;
+    background: var(--panel); color: var(--cream); border:1px solid var(--gold);
+    border-radius: 999px; padding: 14px 14px; font-family:'Inter', sans-serif; font-weight:700; font-size: 12px;
+    white-space:nowrap;
+  }
+
+  .ga-overlay{
+    position: fixed; inset:0; background: rgba(0,0,0,.55); z-index: 92;
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition: opacity .25s ease;
+  }
+  .ga-overlay.open{ opacity:1; pointer-events:auto; }
+  .ga-panel{
+    width:100%; max-width: 480px; background:#fff; color:#1b1b1b;
+    border-radius: 20px 20px 0 0; max-height: 85vh; overflow-y:auto;
+    padding: 22px 22px calc(20px + env(safe-area-inset-bottom));
+    position:relative;
+    transform: translateY(30px); transition: transform .25s ease;
+  }
+  .ga-overlay.open .ga-panel{ transform: translateY(0); }
+  .ga-panel h2{ font-family:'Unbounded', 'Inter', sans-serif; font-size:19px; margin:0 0 16px; text-align:center; }
+  .ga-close{ position:absolute; top:14px; right:16px; background:none; border:none; font-size:18px; color:#999; padding:4px; }
+  .ga-repeat-row{
+    width:100%; display:flex; align-items:center; gap:10px; padding:14px 16px;
+    background: var(--gold); color:#1C1500; border:none; border-radius:14px;
+    font-weight:700; font-size:15px; margin-bottom:14px;
+  }
+  .ga-icon{ font-size:19px; }
+  .ga-quick-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .ga-quick-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:12px 6px; background:#f6f3ea; border:1px solid #e6e0d0; border-radius:12px;
+    font-size:12px; font-weight:600; color:#333;
+  }
+  .ga-qicon{ font-size:19px; }
+  .ga-more-toggle{
+    width:100%; background:none; border:none; color:#888; font-size:13px; font-weight:600;
+    padding:6px; margin-bottom:6px;
+  }
+  .ga-call-btn{
+    width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px; background:#1C1500; color:#fff; border:none; border-radius:14px;
+    font-weight:700; font-size:14px; margin-top:8px;
+  }
+  .ga-back{ background:none; border:none; font-size:20px; color:#888; padding:4px 8px 4px 0; }
+  #gaRepeatList{ margin:14px 0; max-height:45vh; overflow-y:auto; }
+  .ga-repeat-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 0; border-bottom:1px solid #eee;
+  }
+  .ga-repeat-item .rn{ font-size:14px; }
+  .ga-repeat-qty{ display:flex; align-items:center; gap:10px; }
+  .ga-repeat-qty button{
+    width:30px; height:30px; border-radius:50%; border:1px solid #ddd; background:#fff;
+    font-size:16px; font-weight:700; color:#333;
+  }
+  .ga-repeat-qty span{ min-width:16px; text-align:center; font-weight:700; }
+  .ga-send-btn{
+    width:100%; padding:14px; background:var(--gold); color:#1C1500; border:none; border-radius:14px;
+    font-weight:700; font-size:15px;
+  }
+  .ga-empty{ text-align:center; color:#999; font-size:14px; padding:20px 0; }
+
+  .bill-overlay{
+    position: fixed; inset:0; background: rgba(0,0,0,.55); z-index: 90;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease;
+  }
+  .bill-overlay.open{ opacity:1; pointer-events:auto; }
+  .bill-panel{
+    width:100%; max-width: 480px; background:#fff; color:#1b1b1b;
+    border-radius: 20px; max-height: 82vh; overflow-y:auto;
+    transform: translateY(30px); transition: transform .25s ease;
+  }
+  .bill-overlay.open .bill-panel{ transform: translateY(0); }
+  .bill-body{ padding: 24px 24px 8px; }
+  .bill-body h2{ font-family:'Unbounded', 'Inter', sans-serif; font-size:22px; margin:0 0 4px; text-align:center; }
+  .status-badge{
+    text-align:center; font-family:'Unbounded', 'Inter', sans-serif; font-weight:700; font-size:20px;
+    padding:10px 14px; border-radius:12px; margin-bottom:6px;
+  }
+  .status-badge.preparing{ background:#fff3e0; color:#b06a00; }
+  .status-badge.ready{ background:#e8f7ee; color:#1e8a4c; }
+  .status-badge.served{ background:#eee; color:#555; }
+  .bill-body .sub{ text-align:center; font-size:12px; color:#777; margin-bottom:16px; }
+  .bill-line{ display:flex; justify-content:space-between; font-size:14px; padding:6px 0; border-bottom:1px dashed #ddd; }
+  .bill-line .n{ flex:1; padding-right:10px; }
+  .bill-total-row{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; color:#555; }
+  .bill-total{ display:flex; justify-content:space-between; font-family:'Unbounded', 'Inter', sans-serif; font-weight:700; font-size:19px; margin-top:8px; }
+  .bill-actions{ display:flex; gap:10px; padding:16px 24px 24px; border-top:1px solid #eee; }
+  .bill-actions button{ flex:1; padding:13px; border-radius:12px; border:none; font-weight:700; font-size:13.5px; }
+  .bill-close{ background:#eee; color:#333; }
+  .bill-request{ background: var(--gold); color:#1C1500; }
+
+  .confirm-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:210; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition: opacity .22s ease; }
+  .confirm-overlay.open{ opacity:1; pointer-events:auto; }
+  .confirm-box{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px 22px; max-width:300px; width:100%; text-align:center; transform:scale(.9); transition: transform .22s cubic-bezier(.2,1,.3,1); }
+  .confirm-overlay.open .confirm-box{ transform:scale(1); }
+  .confirm-brand{ font-family:'Unbounded','Inter',sans-serif; color:var(--gold); font-size:12px; font-weight:700; margin-bottom:12px; letter-spacing:.06em; text-transform:uppercase; }
+  .confirm-question{ font-size:16px; font-weight:700; color:var(--cream); margin-bottom:6px; }
+  .confirm-sub{ font-size:12.5px; color:var(--muted); margin-bottom:20px; line-height:1.4; display:none; }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions button{ flex:1; padding:11px; border-radius:10px; font-weight:700; font-size:13.5px; border:none; }
+  .confirm-cancel{ background:var(--bg-deep); color:var(--cream); border:1px solid var(--line); }
+  .confirm-ok{ background:var(--gold); color:var(--bg-deep); }
+  .confirm-ok.danger{ background:#D9534F; color:#fff; }
+  .bill-request:disabled{ opacity:.55; }
+  .bill-empty{ text-align:center; color:#888; font-size:14px; padding: 30px 10px; }
+
+  @media (min-width: 720px){
+    header.top{ padding-left: calc(50% - 320px); padding-right: calc(50% - 320px); }
+  }
+</style>
+</head>
+<body>
+
+<div id="updateBanner" style="display:none; position:sticky; top:0; z-index:150; background:var(--gold); color:var(--bg-deep); padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1);">
+  <span id="updateBannerText">Доступна новая версия меню</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button id="updateBannerBtn" onclick="applyUpdate()" style="background:var(--bg-deep); color:var(--gold); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px;">Обновить</button>
+    <button onclick="dismissUpdateBanner()" style="background:transparent; border:none; color:var(--bg-deep); font-size:16px; font-weight:700; padding:0 4px;">×</button>
+  </div>
+</div>
+
+<header class="top">
+  <div class="lang-switch-wrap">
+    <button class="lang-btn" onclick="toggleLangMenu()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg>
+      <span id="langLabel">RU</span>
+    </button>
+    <div class="lang-menu" id="langMenu">
+      <button onclick="setLang('ru')" data-lang="ru">Русский</button>
+      <button onclick="setLang('en')" data-lang="en">English</button>
+      <button onclick="setLang('kk')" data-lang="kk">Қазақша</button>
+    </div>
+    <a href="https://garage-music-bar.kamiqr.com/feedback/O4BZRu" target="_blank" rel="noopener" class="review-btn" id="reviewBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <span id="reviewBtnLabel">Оставить отзыв</span>
+    </a>
+    <button class="review-btn" id="wifiBtn" onclick="openWifiModal()" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      <span id="wifiBtnLabel">Wi-Fi</span>
+    </button>
+  </div>
+
+  <a href="/contact.html" class="credit-link">by RQ Coding<svg class="credit-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/><path d="M14 4h6v6"/><path d="M10 14L20 4"/></svg></a>
+  <div class="brand-row">
+    <div class="brand">
+      <div class="brand-mark">G</div>
+      <div class="brand-text">
+        <div class="name">Garage Music Bar</div>
+        <div class="sub" id="taglineText">Live music, DJ, квиз, стендап</div>
+      </div>
+    </div>
+    <div class="svc-note" id="svcNote">Обслуживание 10%. Цены указаны в тенге.</div>
+  </div>
+
+  <div class="mode-switch">
+    <button id="btn-food" class="active" onclick="setMode('food')">Кухня</button>
+    <button id="btn-bar" onclick="setMode('bar')">Бар</button>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8D9CA2" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="Найти блюдо или напиток…" oninput="onSearch()">
+  </div>
+
+  <nav class="chips" id="chips"></nav>
+</header>
+
+<main id="main"></main>
+
+<footer class="foot">
+  <div class="gold">Garage Music Bar</div>
+  <span id="enjoyText">Приятного аппетита!</span><br>
+  <span id="scanNoteText">Отсканируйте QR‑код у столика, чтобы вернуться к меню в любой момент.</span>
+</footer>
+
+<div class="call-bar" id="callBar" style="display:none;">
+  <button class="call-waiter-btn" id="callWaiterBtn" onclick="openGuestActions()">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span id="callWaiterLabel">Хочу сделать заказ</span>
+  </button>
+  <button class="call-bill-btn" id="callBillBtn" onclick="openBill()" style="display:none;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12a1 1 0 0 1 1 1v18l-3-2-3 2-3-2-3 2-3-2V3a1 1 0 0 1 1-1z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+    <span id="callBillLabel">Предварительный чек</span>
+  </button>
+</div>
+
+<div class="ga-overlay" id="guestActionsOverlay">
+  <div class="ga-panel">
+    <div id="gaMainView">
+      <h2 id="gaTitle">Чем помочь?</h2>
+      <button class="ga-repeat-row" id="gaRepeatRow" onclick="openRepeatView()" style="display:none;">
+        <span class="ga-icon">🔁</span><span id="gaRepeatLabel">Повторить из заказанного</span>
+      </button>
+      <div class="ga-quick-row">
+        <button class="ga-quick-btn" id="gaCutleryBtn" onclick="confirmQuickRequest('cutlery')"><span class="ga-qicon">🍴</span><span id="gaCutlery">Приборы</span></button>
+        <button class="ga-quick-btn" onclick="confirmQuickRequest('napkins')"><span class="ga-qicon">🧻</span><span id="gaNapkins">Салфетки</span></button>
+        <button class="ga-quick-btn" id="gaToothpicksBtn" onclick="confirmQuickRequest('toothpicks')"><span class="ga-qicon">🦷</span><span id="gaToothpicks">Зубочистки</span></button>
+      </div>
+      <button class="ga-more-toggle" id="gaMoreToggle" onclick="toggleGaMore()"><span id="gaMoreLabel">Ещё</span> <span id="gaMoreArrow">▾</span></button>
+      <div class="ga-quick-row" id="gaMoreRow" style="display:none;">
+        <button class="ga-quick-btn" onclick="confirmQuickRequest('salt_pepper')"><span class="ga-qicon">🧂</span><span id="gaSaltPepper">Соль/перец</span></button>
+        <button class="ga-quick-btn" onclick="confirmQuickRequest('order_problem')"><span class="ga-qicon">⚠️</span><span id="gaProblem">Проблема с заказом</span></button>
+      </div>
+      <button class="ga-call-btn" onclick="confirmPlainCall()"><span class="ga-qicon">📞</span><span id="gaCallWaiter">Позвать официанта</span></button>
+    </div>
+    <div id="gaRepeatView" style="display:none;">
+      <button class="ga-back" onclick="backToGaMain()">←</button>
+      <h2 id="gaRepeatTitle">Повторить из заказанного</h2>
+      <div id="gaRepeatList"></div>
+      <button class="ga-send-btn" id="gaSendRepeatBtn" onclick="sendRepeatRequest()" style="display:none;"></button>
+    </div>
+    <button class="ga-close" onclick="closeGuestActions()">✕</button>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-brand">Garage Music Bar</div>
+    <div class="confirm-question" id="confirmQuestion"></div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" id="confirmCancelBtn" onclick="confirmNo()">Отмена</button>
+      <button class="confirm-ok" id="confirmOkBtn" onclick="confirmYes()">Да</button>
+    </div>
+  </div>
+</div>
+
+<div class="ga-overlay" id="wifiOverlay">
+  <div class="ga-panel">
+    <button class="ga-close" onclick="closeWifiModal()">✕</button>
+    <h2 id="wifiModalTitle">Wi-Fi заведения</h2>
+    <div style="background:#f6f3ea; border:1px solid #e6e0d0; border-radius:14px; padding:16px; margin-bottom:14px;">
+      <div style="font-size:12px; color:#888; margin-bottom:4px;" id="wifiSsidLabel">Сеть</div>
+      <div style="font-size:17px; font-weight:700; margin-bottom:14px;" id="wifiSsidValue"></div>
+      <div style="font-size:12px; color:#888; margin-bottom:4px;" id="wifiPasswordLabel">Пароль</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <span style="font-size:17px; font-weight:700;" id="wifiPasswordValue"></span>
+        <button onclick="copyWifiPassword()" style="padding:8px 14px; border-radius:10px; border:1px solid #ddd; background:#fff; font-size:13px; font-weight:600;" id="wifiCopyBtn">Копировать</button>
+      </div>
+    </div>
+    <p style="font-size:12.5px; color:#999; text-align:center;" id="wifiHint">Откройте настройки Wi-Fi на телефоне и выберите эту сеть</p>
+  </div>
+</div>
+
+<div class="bill-overlay" id="billOverlay">
+  <div class="bill-panel">
+    <div class="bill-body" id="billBody"></div>
+    <div class="bill-actions">
+      <button class="bill-close" onclick="closeBill()" id="billCloseText">Закрыть</button>
+      <button class="bill-request" onclick="requestBillFromModal()" id="billRequestBtn">Попросить расчёт</button>
+    </div>
+    <div id="consentAsk" style="display:none; margin:0 24px 20px; padding:14px 16px; background:#f6f3ea; border-radius:12px; text-align:center; animation: popIn .28s cubic-bezier(.2,1,.3,1);">
+      <p id="consentText" style="margin:0 0 10px; font-size:12.5px; color:#555; line-height:1.4;">Нам запомнить ваши предпочтения?</p>
+      <div style="display:flex; gap:8px;">
+        <button id="consentNoBtn" onclick="answerConsent(false)" style="flex:1; padding:9px; border-radius:9px; border:1px solid #ccc; background:#fff; color:#333; font-weight:700; font-size:12.5px;">Нет, спасибо</button>
+        <button id="consentYesBtn" onclick="answerConsent(true)" style="flex:1; padding:9px; border-radius:9px; border:none; background:var(--gold); color:#1C1500; font-weight:700; font-size:12.5px;">Да, запомнить</button>
+      </div>
+    </div>
+    <div id="forgetMeRow" style="display:none; text-align:center; margin:0 24px 20px; animation: popIn .28s cubic-bezier(.2,1,.3,1);">
+      <a href="#" id="forgetMeLinkText" onclick="forgetMe();return false;" style="font-size:11.5px; color:#999; text-decoration:underline;">Забыть меня на этом устройстве</a>
+    </div>
+  </div>
+</div>
+
+<script>
+let MENU = { food: [], bar: [] }; // populated live from the server's shared menu
+// Imported photos are static files of this site (/menu-img/…); photos the
+// manager uploads later are served by the API worker (<venue>/<uuid>.jpg).
+const IMG_BASE = "https://api.restorun.kuatov.kz/img/";
+const PHOTO_ITEMS = {};
+function imgSrc(key){
+  if(!key) return null;
+  return (key.startsWith('/') || key.startsWith('http')) ? key : IMG_BASE + key;
+}
+function photoUrl(it, full){
+  return imgSrc(full ? (it.imgFull || it.img) : (it.img || it.imgFull));
+}
+function photoFallback(img){
+  const it = PHOTO_ITEMS[img.dataset.id];
+  const full = it && photoUrl(it, true);
+  if(full && img.src !== full && !img.dataset.triedFull){ img.dataset.triedFull = "1"; img.src = full; return; }
+  const row = img.closest('.item'); if(row) row.classList.remove('has-photo');
+  img.remove();
+}
+function openPhoto(id){
+  const it = PHOTO_ITEMS[id]; if(!it) return;
+  const desc = it.desc ? (it.desc[LANG] || it.desc.ru) : '';
+  document.getElementById('photoLbImg').src = photoUrl(it, true);
+  document.getElementById('photoLbImg').alt = it.name[LANG] || it.name.ru;
+  document.getElementById('photoLbName').textContent = it.name[LANG] || it.name.ru;
+  document.getElementById('photoLbPrice').textContent = fmtPrice(it);
+  document.getElementById('photoLbDesc').textContent = desc;
+  document.getElementById('photoLb').classList.add('open');
+}
+function closePhoto(){
+  document.getElementById('photoLb').classList.remove('open');
+  document.getElementById('photoLbImg').removeAttribute('src');
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closePhoto(); });
+let unavailable = {};
+
+const STR = {
+  ru: { tagline:"Live music, DJ, квиз, стендап", svc:"Обслуживание 10%. Цены указаны в тенге.", kitchen:"Кухня", bar:"Бар", search:"Найти блюдо или напиток…", enjoy:"Приятного аппетита!", scanNote:"Отсканируйте QR‑код у столика, чтобы вернуться к меню в любой момент.", currency:" тг.", soldOut:"нет в наличии",
+    callWaiterBtn:"Хочу сделать заказ", callWaiterWaiting:"Зовём официанта…", callWaiterComing:"Официант идёт!",
+    billBtn:"Статус заказа", billTitle:"Статус заказа", billNotFiscal:"Не является фискальным чеком", billEmpty:"Пока нет заказанных позиций",
+    statusPreparing:"Готовится", statusReady:"Готово — официант уже идёт", statusServed:"Подано",
+    stationKitchen:"Кухня", stationBar:"Бар",
+    stagePending:"В очереди", stageAccepted:"Готовится", stageReady:"Готово",
+    billSum:"Сумма", billService:"Обслуживание (10%)", billTotal:"Итого", tableWord:"Стол",
+    billRequestBtn:"Попросить расчёт", billRequestWaiting:"Официант уже несёт счёт…",
+    consentQuestion:"Нам запомнить ваши предпочтения?", consentYes:"Да, запомнить", consentNo:"Нет, спасибо",
+    forgetMeLink:"Забыть меня на этом устройстве", forgottenAlert:"Готово — данные забыты.",
+    confirmBillQuestion:"Позвать официанта с расчётом?", confirmCallQuestion:"Позвать официанта?", confirmCancel:"Отмена", confirmYes:"Да",
+    forgetConfirmQuestion:"Забыть вас?", forgetConfirmSub:"В следующий раз официант не будет знать ваш обычный заказ.",
+    billClose:"Закрыть", reviewBtn:"Оставить отзыв",
+    gaTitle:"Чем помочь?", gaRepeat:"Повторить из заказанного",
+    gaCutlery:"Приборы", gaNapkins:"Салфетки", gaToothpicks:"Зубочистки", gaMore:"Ещё",
+    gaSaltPepper:"Соль/перец", gaProblem:"Проблема с заказом", gaCallWaiter:"Позвать официанта",
+    confirmCutlery:"Попросить приборы?", confirmNapkins:"Попросить салфетки?", confirmToothpicks:"Попросить зубочистки?",
+    confirmSaltPepper:"Попросить соль/перец?", confirmProblem:"Сообщить официанту о проблеме с заказом?",
+    gaRepeatEmpty:"У вас пока нет истории заказов", gaSendRepeat:"Отправить официанту",
+    gaRepeatSentAlert:"Отправлено! Официант проверит и подтвердит заказ.",
+    wifiModalTitle:"Wi-Fi заведения", wifiSsidLabel:"Сеть", wifiPasswordLabel:"Пароль",
+    wifiHint:"Откройте настройки Wi-Fi на телефоне и выберите эту сеть", wifiCopyBtn:"Копировать", wifiCopied:"Скопировано!",
+    updateBannerText:"Доступна новая версия меню", updateBannerBtn:"Обновить" },
+  en: { tagline:"Live music, DJs, quiz, stand-up", svc:"10% service charge included. Prices in KZT.", kitchen:"Kitchen", bar:"Bar", search:"Search dish or drink…", enjoy:"Enjoy your meal!", scanNote:"Scan the QR code at your table to return to the menu anytime.", currency:" KZT", soldOut:"sold out",
+    callWaiterBtn:"I'd like to order", callWaiterWaiting:"Calling a waiter…", callWaiterComing:"Waiter is on the way!",
+    billBtn:"Order status", billTitle:"Order status", billNotFiscal:"Not a fiscal receipt", billEmpty:"No items ordered yet",
+    statusPreparing:"Being prepared", statusReady:"Ready — waiter is on the way", statusServed:"Served",
+    stationKitchen:"Kitchen", stationBar:"Bar",
+    stagePending:"Queued", stageAccepted:"Preparing", stageReady:"Ready",
+    billSum:"Subtotal", billService:"Service (10%)", billTotal:"Total", tableWord:"Table",
+    billRequestBtn:"Request the bill", billRequestWaiting:"Waiter is bringing the bill…",
+    consentQuestion:"Should we remember your preferences?", consentYes:"Yes, remember", consentNo:"No, thanks",
+    forgetMeLink:"Forget me on this device", forgottenAlert:"Done — your data has been forgotten.",
+    confirmBillQuestion:"Call the waiter with the bill?", confirmCallQuestion:"Call the waiter?", confirmCancel:"Cancel", confirmYes:"Yes",
+    forgetConfirmQuestion:"Forget you?", forgetConfirmSub:"Next time the waiter won't know your usual order.",
+    billClose:"Close", reviewBtn:"Leave a review",
+    gaTitle:"How can we help?", gaRepeat:"Repeat from your order",
+    gaCutlery:"Cutlery", gaNapkins:"Napkins", gaToothpicks:"Toothpicks", gaMore:"More",
+    gaSaltPepper:"Salt/pepper", gaProblem:"Problem with order", gaCallWaiter:"Call the waiter",
+    confirmCutlery:"Request cutlery?", confirmNapkins:"Request napkins?", confirmToothpicks:"Request toothpicks?",
+    confirmSaltPepper:"Request salt/pepper?", confirmProblem:"Tell the waiter about a problem with your order?",
+    gaRepeatEmpty:"You don't have any order history yet", gaSendRepeat:"Send to waiter",
+    gaRepeatSentAlert:"Sent! The waiter will review and confirm the order.",
+    wifiModalTitle:"Venue Wi-Fi", wifiSsidLabel:"Network", wifiPasswordLabel:"Password",
+    wifiHint:"Open Wi-Fi settings on your phone and select this network", wifiCopyBtn:"Copy", wifiCopied:"Copied!",
+    updateBannerText:"A new menu version is available", updateBannerBtn:"Update" },
+  kk: { tagline:"Жанды музыка, DJ, квиз, стендап", svc:"Қызмет көрсету ақысы 10%. Бағалар теңгемен.", kitchen:"Ас үй", bar:"Бар", search:"Тағам немесе сусын іздеу…", enjoy:"Ас болсын!", scanNote:"Кез келген уақытта мәзірге оралу үшін үстелдегі QR-кодты сканерлеңіз.", currency:" тг.", soldOut:"қазір жоқ",
+    callWaiterBtn:"Тапсырыс бергім келеді", callWaiterWaiting:"Даяшыны шақырып жатырмыз…", callWaiterComing:"Даяшы жолда!",
+    billBtn:"Тапсырыс мәртебесі", billTitle:"Тапсырыс мәртебесі", billNotFiscal:"Фискалдық чек емес", billEmpty:"Әзірге тапсырыс берілген тағам жоқ",
+    statusPreparing:"Дайындалуда", statusReady:"Дайын — даяшы жолда", statusServed:"Берілді",
+    stationKitchen:"Ас үй", stationBar:"Бар",
+    stagePending:"Кезекте", stageAccepted:"Дайындалуда", stageReady:"Дайын",
+    billSum:"Сома", billService:"Қызмет көрсету (10%)", billTotal:"Барлығы", tableWord:"Үстел",
+    billRequestBtn:"Есеп сұрау", billRequestWaiting:"Даяшы есепті әкеле жатыр…",
+    consentQuestion:"Сіздің қалауыңызды есте сақтайық па?", consentYes:"Иә, есте сақтау", consentNo:"Жоқ, рахмет",
+    forgetMeLink:"Бұл құрылғыда мені ұмыту", forgottenAlert:"Дайын — деректер ұмытылды.",
+    confirmBillQuestion:"Даяшыны есеппен шақыру керек пе?", confirmCallQuestion:"Даяшыны шақыру керек пе?", confirmCancel:"Бас тарту", confirmYes:"Иә",
+    forgetConfirmQuestion:"Сізді ұмыту керек пе?", forgetConfirmSub:"Келесі жолы даяшы сіздің әдеттегі тапсырысыңызды білмейді.",
+    billClose:"Жабу", reviewBtn:"Пікір қалдыру",
+    gaTitle:"Немен көмектесейік?", gaRepeat:"Тапсырыстан қайталау",
+    gaCutlery:"Аспаптар", gaNapkins:"Майлықтар", gaToothpicks:"Тіс тазалағыштар", gaMore:"Тағы",
+    gaSaltPepper:"Тұз/бұрыш", gaProblem:"Тапсырыспен мәселе", gaCallWaiter:"Даяшыны шақыру",
+    confirmCutlery:"Аспаптар сұрау керек пе?", confirmNapkins:"Майлықтар сұрау керек пе?", confirmToothpicks:"Тіс тазалағыш сұрау керек пе?",
+    confirmSaltPepper:"Тұз/бұрыш сұрау керек пе?", confirmProblem:"Даяшыға тапсырыспен мәселе туралы хабарлау керек пе?",
+    gaRepeatEmpty:"Сізде әлі тапсырыс тарихы жоқ", gaSendRepeat:"Даяшыға жіберу",
+    gaRepeatSentAlert:"Жіберілді! Даяшы тексеріп, тапсырысты растайды.",
+    wifiModalTitle:"Мекеменің Wi-Fi желісі", wifiSsidLabel:"Желі", wifiPasswordLabel:"Құпия сөз",
+    wifiHint:"Телефоныңыздағы Wi-Fi баптауларын ашып, осы желіні таңдаңыз", wifiCopyBtn:"Көшіру", wifiCopied:"Көшірілді!",
+    updateBannerText:"Мәзірдің жаңа нұсқасы қолжетімді", updateBannerBtn:"Жаңарту" }
+};
+
+let currentMode = 'food';
+let wifiInfo = null;
+
+function openWifiModal(){
+  if(!wifiInfo) return;
+  document.getElementById('wifiSsidValue').textContent = wifiInfo.ssid;
+  document.getElementById('wifiPasswordValue').textContent = wifiInfo.password || '—';
+  document.getElementById('wifiOverlay').classList.add('open');
+}
+function closeWifiModal(){
+  document.getElementById('wifiOverlay').classList.remove('open');
+}
+function copyWifiPassword(){
+  if(!wifiInfo || !wifiInfo.password) return;
+  const btn = document.getElementById('wifiCopyBtn');
+  const original = btn.textContent;
+  const done = () => { btn.textContent = STR[LANG].wifiCopied; setTimeout(() => { btn.textContent = original; }, 1500); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(wifiInfo.password).then(done).catch(done);
+  } else {
+    done();
+  }
+}
+
+let LANG = localStorage.getItem('garage_lang') || 'ru';
+let observer;
+const WS_URL = "wss://api.restorun.kuatov.kz/ws?venue=garage-music-bar";
+const QR_ID = new URLSearchParams(location.search).get('qr');
+let TABLE = null; // only ever set from the server's verified resolve_qr response — never trust a raw ?table= param
+let liveSocket = null;
+let callCooldown = false;
+let currentBill = null;
+let tableUIActive = false;
+const HARD_EXPIRE_MS = 10 * 60 * 60 * 1000;
+let sessionStartedAt = Date.now();
+let sessionExpired = false;
+let pendingConfirmCallback = null;
+const APP_VERSION = "17";
+let updateDismissed = false;
+
+function toggleLangMenu(){
+  document.getElementById('langMenu').classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.lang-switch-wrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('langMenu').classList.remove('open');
+});
+
+function setLang(lang){
+  LANG = lang;
+  localStorage.setItem('garage_lang', lang);
+  document.getElementById('langLabel').textContent = lang.toUpperCase();
+  document.getElementById('htmlRoot').lang = lang;
+  document.querySelectorAll('.lang-menu button').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
+  document.getElementById('langMenu').classList.remove('open');
+  applyStaticStrings();
+  renderChips();
+  renderMain();
+}
+
+function applyStaticStrings(){
+  const s = STR[LANG];
+  document.getElementById('taglineText').textContent = s.tagline;
+  document.getElementById('svcNote').textContent = s.svc;
+  document.getElementById('btn-food').textContent = s.kitchen;
+  document.getElementById('btn-bar').textContent = s.bar;
+  document.getElementById('search').placeholder = s.search;
+  document.getElementById('enjoyText').textContent = s.enjoy;
+  document.getElementById('scanNoteText').textContent = s.scanNote;
+
+  if(!callCooldown) document.getElementById('callWaiterLabel').textContent = s.callWaiterBtn;
+  document.getElementById('callBillLabel').textContent = s.billBtn;
+  document.getElementById('confirmCancelBtn').textContent = s.confirmCancel;
+  document.getElementById('billCloseText').textContent = s.billClose;
+  if(!document.getElementById('billRequestBtn').disabled) document.getElementById('billRequestBtn').textContent = s.billRequestBtn;
+  document.getElementById('consentText').textContent = s.consentQuestion;
+  document.getElementById('consentNoBtn').textContent = s.consentNo;
+  document.getElementById('consentYesBtn').textContent = s.consentYes;
+  document.getElementById('forgetMeLinkText').textContent = s.forgetMeLink;
+  document.getElementById('updateBannerText').textContent = s.updateBannerText;
+  document.getElementById('updateBannerBtn').textContent = s.updateBannerBtn;
+  document.getElementById('reviewBtnLabel').textContent = s.reviewBtn;
+  document.getElementById('gaTitle').textContent = s.gaTitle;
+  document.getElementById('gaRepeatLabel').textContent = s.gaRepeat;
+  document.getElementById('gaRepeatTitle').textContent = s.gaRepeat;
+  document.getElementById('gaCutlery').textContent = s.gaCutlery;
+  document.getElementById('gaNapkins').textContent = s.gaNapkins;
+  document.getElementById('gaToothpicks').textContent = s.gaToothpicks;
+  document.getElementById('gaMoreLabel').textContent = s.gaMore;
+  document.getElementById('gaSaltPepper').textContent = s.gaSaltPepper;
+  document.getElementById('gaProblem').textContent = s.gaProblem;
+  document.getElementById('gaCallWaiter').textContent = s.gaCallWaiter;
+  document.getElementById('gaSendRepeatBtn').textContent = s.gaSendRepeat;
+  document.getElementById('wifiModalTitle').textContent = s.wifiModalTitle;
+  document.getElementById('wifiSsidLabel').textContent = s.wifiSsidLabel;
+  document.getElementById('wifiPasswordLabel').textContent = s.wifiPasswordLabel;
+  document.getElementById('wifiHint').textContent = s.wifiHint;
+  document.getElementById('wifiCopyBtn').textContent = s.wifiCopyBtn;
+  if(currentBill) renderBill();
+}
+
+function fmtPrice(item){
+  let parts = [item.price];
+  if(item.price2) parts.push(item.price2);
+  if(item.price3) parts.push(item.price3);
+  return parts.join(' / ') + STR[LANG].currency;
+}
+
+function renderChips(){
+  const chips = document.getElementById('chips');
+  chips.innerHTML = '';
+  MENU[currentMode].forEach((cat, i) => {
+    const b = document.createElement('button');
+    b.textContent = cat.title[LANG] || cat.title.ru;
+    b.dataset.idx = i;
+    b.onclick = () => {
+      const node = document.getElementById('cat-' + i);
+      const header = document.querySelector('header.top');
+      const headerHeight = header ? header.getBoundingClientRect().height : 0;
+      const top = node.getBoundingClientRect().top + window.scrollY - headerHeight - 10;
+      window.scrollTo({ top, behavior: 'smooth' });
+    };
+    chips.appendChild(b);
+  });
+}
+
+function renderMain(){
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const cats = MENU[currentMode];
+  const destKey = currentMode === 'food' ? 'kitchen' : 'bar';
+  cats.forEach((cat, i) => {
+    const sec = document.createElement('section');
+    sec.className = 'category';
+    sec.id = 'cat-' + i;
+
+    let html = `<div class="cat-head"><h2>${cat.title[LANG] || cat.title.ru}</h2><div class="rule"></div></div>`;
+    if(cat.note) html += `<p class="cat-note">${cat.note[LANG] || cat.note.ru}</p>`;
+    cat.items.forEach(it => {
+      const name = it.name[LANG] || it.name.ru;
+      const desc = it.desc ? (it.desc[LANG] || it.desc.ru) : null;
+      const searchBlob = [it.name.ru, it.name.en, it.name.kk, desc||''].join(' ').toLowerCase();
+      const isUnavail = !!unavailable[destKey+'|'+it.name.ru];
+      const thumb = photoUrl(it, false);
+      if(thumb) PHOTO_ITEMS[it.id] = it;
+      html += `<div class="item${isUnavail?' disabled':''}${thumb?' has-photo':''}" data-search="${searchBlob}">
+        ${thumb ? `<img class="item-photo" src="${thumb}" alt="" loading="lazy" decoding="async" data-id="${it.id}" onclick="openPhoto('${it.id}')" onerror="photoFallback(this)">` : ''}
+        ${thumb ? '<div class="item-body">' : ''}
+        <div class="item-row">
+          ${it.n ? `<span class="item-num">${it.n}</span>` : ''}
+          <span class="item-name">${name}</span>
+          ${isUnavail ? `<span class="unavail-tag">${STR[LANG].soldOut}</span>` : ''}
+          <span class="dots"></span>
+          <span class="item-price">${fmtPrice(it)}</span>
+        </div>
+        ${desc ? `<div class="item-desc">${desc}</div>` : ''}
+        ${thumb ? '</div>' : ''}
+      </div>`;
+    });
+    sec.innerHTML = html;
+    main.appendChild(sec);
+  });
+}
+
+function setMode(mode){
+  currentMode = mode;
+  document.getElementById('btn-food').classList.toggle('active', mode==='food');
+  document.getElementById('btn-bar').classList.toggle('active', mode==='bar');
+  document.getElementById('search').value = '';
+  renderChips();
+  renderMain();
+  window.scrollTo({top:0, behavior:'instant'});
+  setupObserver();
+}
+
+function onSearch(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  document.querySelectorAll('section.category').forEach(sec => {
+    let visibleCount = 0;
+    sec.querySelectorAll('.item').forEach(item => {
+      const match = !q || item.dataset.search.includes(q);
+      item.style.display = match ? '' : 'none';
+      if(match) visibleCount++;
+    });
+    sec.style.display = visibleCount ? '' : 'none';
+  });
+}
+
+function setupObserver(){
+  if(observer) observer.disconnect();
+  const chips = document.getElementById('chips').children;
+  const header = document.querySelector('header.top');
+  const headerHeight = header ? header.getBoundingClientRect().height : 190;
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const idx = entry.target.id.split('-')[1];
+        Array.from(chips).forEach(c => c.classList.remove('active'));
+        if(chips[idx]){
+          chips[idx].classList.add('active');
+          chips[idx].scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+        }
+      }
+    });
+  }, { rootMargin: `-${Math.ceil(headerHeight+10)}px 0px -70% 0px` });
+  document.querySelectorAll('section.category').forEach(sec => observer.observe(sec));
+}
+
+document.querySelectorAll('.lang-menu button').forEach(b => b.classList.toggle('active', b.dataset.lang===LANG));
+document.getElementById('langLabel').textContent = LANG.toUpperCase();
+document.getElementById('htmlRoot').lang = LANG;
+applyStaticStrings();
+renderChips();
+renderMain();
+setupObserver();
+
+// --- live connection: pulls the shared menu + availability from the
+// staff system, so a dish the kitchen/bar marks unavailable greys out
+// here automatically, without editing this page. ---
+
+function connectLive(){
+  let socket;
+  try{ socket = new WebSocket(WS_URL); }catch(e){ return; }
+  liveSocket = socket;
+  socket.onopen = () => {
+    socket.send(JSON.stringify({type:"hello", role:"guest", table: TABLE}));
+    if(TABLE) activateTableUI();
+    else if(QR_ID) socket.send(JSON.stringify({type:"resolve_qr", qrId: QR_ID}));
+  };
+  socket.onmessage = (evt) => {
+    let msg;
+    try{ msg = JSON.parse(evt.data); }catch(e){ return; }
+    if(msg.type === "state"){
+      if(msg.menu){ MENU = { food: msg.menu.kitchen || [], bar: msg.menu.bar || [] }; }
+      unavailable = msg.unavailable || {};
+      wifiInfo = msg.wifi || null;
+      document.getElementById('wifiBtn').style.display = wifiInfo ? 'flex' : 'none';
+      renderChips();
+      renderMain();
+      onSearch();
+      setupObserver();
+    }
+    if(msg.type === "table_closed"){
+      const btn = document.getElementById('billRequestBtn');
+      if(btn){ btn.disabled = false; btn.textContent = STR[LANG].billRequestBtn; }
+      if(currentBill){ currentBill = null; } // stale — next open will fetch the fresh (served) state
+    }
+    if(msg.type === "qr_table" && msg.qrId === QR_ID){
+      if(msg.table){ TABLE = msg.table; activateTableUI(); }
+    }
+    if(msg.type === "table_bill" && String(msg.table) === String(TABLE)){
+      currentBill = msg;
+      document.getElementById('callBillBtn').style.display = msg.hasOrders ? 'flex' : 'none';
+      document.getElementById('gaRepeatRow').style.display = msg.hasOrders ? 'flex' : 'none';
+      if(waitingAck && msg.calling === false){
+        waitingAck = false;
+        clearInterval(ackPollTimer);
+        const label = document.getElementById('callWaiterLabel');
+        if(label) label.textContent = STR[LANG].callWaiterComing;
+      }
+      if(document.getElementById('billOverlay').classList.contains('open')) renderBill();
+      if(repeatViewOpen) renderRepeatList(msg.hasOrders ? msg.items : []);
+    }
+  };
+  socket.onclose = () => setTimeout(connectLive, 3000);
+  socket.onerror = () => socket.close();
+}
+connectLive();
+
+function pollBill(){
+  if(!TABLE) return;
+  if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+    liveSocket.send(JSON.stringify({type:"get_table_bill", table: TABLE}));
+  }
+  setTimeout(pollBill, 15000);
+}
+
+function activateTableUI(){
+  if(tableUIActive || sessionExpired) return;
+  tableUIActive = true;
+  document.getElementById('callBar').style.display = 'flex';
+  document.body.style.paddingBottom = '128px';
+  pollBill();
+  if(localStorage.getItem('garage_guest_consent') === 'yes'){
+    document.getElementById('forgetMeRow').style.display = 'block';
+  }
+}
+
+// --- if this tab stays open and in the foreground for 10 hours
+// straight, the call button disappears — this stops a long-abandoned
+// tab from paging a waiter to an empty table. But the moment a human
+// actually brings this tab back into view again — whether that's a
+// fresh QR re-scan that happened to reuse the old tab instead of
+// opening a new one, or just switching back to it — that itself means
+// someone's here now, so we give the session a clean restart instead
+// of leaving it dead forever. ---
+
+function expireCallBar(){
+  if(sessionExpired) return;
+  sessionExpired = true;
+  document.getElementById('callBar').style.display = 'none';
+  document.body.style.paddingBottom = '';
+}
+
+function unexpireCallBar(){
+  if(!sessionExpired) return;
+  sessionExpired = false;
+  sessionStartedAt = Date.now();
+  if(tableUIActive){
+    document.getElementById('callBar').style.display = 'flex';
+    document.body.style.paddingBottom = '128px';
+  }
+}
+
+setTimeout(expireCallBar, HARD_EXPIRE_MS);
+
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) return;
+  if(sessionExpired){ unexpireCallBar(); return; }
+  if(Date.now() - sessionStartedAt >= HARD_EXPIRE_MS) expireCallBar();
+});
+
+let repeatCart = {};
+let repeatViewOpen = false;
+
+function openGuestActions(){
+  if(!TABLE || sessionExpired) return;
+  const hasOrders = !!(currentBill && currentBill.hasOrders);
+  if(!hasOrders){
+    confirmPlainCall();
+    return;
+  }
+  document.getElementById('gaMainView').style.display = 'block';
+  document.getElementById('gaRepeatView').style.display = 'none';
+  document.getElementById('gaMoreRow').style.display = 'none';
+  document.getElementById('gaMoreArrow').textContent = '▾';
+  document.getElementById('guestActionsOverlay').classList.add('open');
+}
+function closeGuestActions(){
+  repeatViewOpen = false;
+  document.getElementById('guestActionsOverlay').classList.remove('open');
+}
+function toggleGaMore(){
+  const row = document.getElementById('gaMoreRow');
+  const open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'flex';
+  document.getElementById('gaMoreArrow').textContent = open ? '▾' : '▴';
+}
+
+function confirmQuickRequest(what){
+  if(!TABLE || sessionExpired) return;
+  const questionKeys = { cutlery:'confirmCutlery', napkins:'confirmNapkins', toothpicks:'confirmToothpicks', salt_pepper:'confirmSaltPepper', order_problem:'confirmProblem' };
+  const question = STR[LANG][questionKeys[what]];
+  closeGuestActions();
+  showConfirm(question, null, () => {
+    if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+      liveSocket.send(JSON.stringify({type:"guest_quick_request", table: TABLE, what, deviceId: consentedDeviceId()}));
+    }
+  });
+}
+
+function confirmPlainCall(){
+  closeGuestActions();
+  callWaiter();
+}
+
+function openRepeatView(){
+  document.getElementById('gaMainView').style.display = 'none';
+  document.getElementById('gaRepeatView').style.display = 'block';
+  document.getElementById('gaRepeatList').innerHTML = `<div class="ga-empty">…</div>`;
+  document.getElementById('gaSendRepeatBtn').style.display = 'none';
+  repeatCart = {};
+  repeatViewOpen = true;
+  if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+    liveSocket.send(JSON.stringify({type:"get_table_bill", table: TABLE}));
+  }
+}
+function backToGaMain(){
+  repeatViewOpen = false;
+  document.getElementById('gaMainView').style.display = 'block';
+  document.getElementById('gaRepeatView').style.display = 'none';
+}
+
+function renderRepeatList(items){
+  const el = document.getElementById('gaRepeatList');
+  if(!items || items.length === 0){
+    el.innerHTML = `<div class="ga-empty">${STR[LANG].gaRepeatEmpty}</div>`;
+    document.getElementById('gaSendRepeatBtn').style.display = 'none';
+    return;
+  }
+  let html = "";
+  items.forEach(i => {
+    const key = i.dest + "|" + i.name;
+    html += `<div class="ga-repeat-item">
+      <span class="rn">${i.name}</span>
+      <div class="ga-repeat-qty">
+        <button onclick="changeRepeatQty('${key.replace(/'/g,"\\'")}','${i.dest}','${i.name.replace(/'/g,"\\'")}',-1)">−</button>
+        <span id="garq-${cssSafeGa(key)}">0</span>
+        <button onclick="changeRepeatQty('${key.replace(/'/g,"\\'")}','${i.dest}','${i.name.replace(/'/g,"\\'")}',1)">+</button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+function cssSafeGa(s){ return s.replace(/[^a-zA-Z0-9]/g, '_'); }
+
+function changeRepeatQty(key, dest, name, delta){
+  const current = repeatCart[key] ? repeatCart[key].qty : 0;
+  const next = Math.max(0, Math.min(20, current + delta));
+  if(next === 0) delete repeatCart[key];
+  else repeatCart[key] = { name, dest, qty: next };
+  const span = document.getElementById('garq-' + cssSafeGa(key));
+  if(span) span.textContent = next;
+  const anySelected = Object.keys(repeatCart).length > 0;
+  document.getElementById('gaSendRepeatBtn').style.display = anySelected ? 'block' : 'none';
+}
+
+function sendRepeatRequest(){
+  const items = Object.values(repeatCart);
+  if(items.length === 0 || !TABLE) return;
+  if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+    liveSocket.send(JSON.stringify({type:"guest_repeat_request", table: TABLE, items, deviceId: consentedDeviceId()}));
+  }
+  repeatCart = {};
+  closeGuestActions();
+  alert(STR[LANG].gaRepeatSentAlert);
+}
+
+let waitingAck = false;
+let ackPollTimer = null;
+
+function pollAckSoon(){
+  if(liveSocket && liveSocket.readyState === WebSocket.OPEN && TABLE){
+    liveSocket.send(JSON.stringify({type:"get_table_bill", table: TABLE}));
+  }
+}
+
+function callWaiter(){
+  if(callCooldown || !TABLE || sessionExpired) return;
+  showConfirm(STR[LANG].confirmCallQuestion, null, () => {
+    if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+      liveSocket.send(JSON.stringify({type:"call_waiter", table: TABLE, deviceId: consentedDeviceId()}));
+    }
+    callCooldown = true;
+    waitingAck = true;
+    const btn = document.getElementById('callWaiterBtn');
+    const label = document.getElementById('callWaiterLabel');
+    btn.disabled = true;
+    let seconds = 20;
+    label.textContent = STR[LANG].callWaiterWaiting;
+    const tick = setInterval(() => {
+      seconds--;
+      if(seconds <= 0){
+        clearInterval(tick);
+        callCooldown = false;
+        waitingAck = false;
+        clearInterval(ackPollTimer);
+        btn.disabled = false;
+        label.textContent = STR[LANG].callWaiterBtn;
+      }
+    }, 1000);
+    pollAckSoon();
+    clearInterval(ackPollTimer);
+    ackPollTimer = setInterval(pollAckSoon, 3000);
+  });
+}
+
+function openBill(){
+  document.getElementById('billOverlay').classList.add('open');
+  renderBill();
+  if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+    liveSocket.send(JSON.stringify({type:"get_table_bill", table: TABLE}));
+  }
+}
+function closeBill(){
+  document.getElementById('billOverlay').classList.remove('open');
+}
+
+function renderBill(){
+  const body = document.getElementById('billBody');
+  const s = STR[LANG];
+  if(!currentBill || !currentBill.hasOrders){
+    body.innerHTML = `<h2>${s.billTitle}</h2><div class="bill-empty">${s.billEmpty}</div>`;
+    return;
+  }
+  const statusLabel = { preparing: s.statusPreparing, ready: s.statusReady, served: s.statusServed }[currentBill.status] || '';
+  const statusClass = { preparing: 'preparing', ready: 'ready', served: 'served' }[currentBill.status] || '';
+  const stageLabel = { pending: s.stagePending, accepted: s.stageAccepted, ready: s.stageReady };
+  let stationsHtml = '';
+  if(currentBill.status === 'preparing' && currentBill.stations){
+    const rows = [];
+    if(currentBill.stations.kitchen) rows.push(`<div class="bill-line"><span class="n">${s.stationKitchen}</span><span>${stageLabel[currentBill.stations.kitchen] || ''}</span></div>`);
+    if(currentBill.stations.bar) rows.push(`<div class="bill-line"><span class="n">${s.stationBar}</span><span>${stageLabel[currentBill.stations.bar] || ''}</span></div>`);
+    if(rows.length) stationsHtml = rows.join('');
+  }
+  let html = `<div class="status-badge ${statusClass}">${statusLabel}</div>
+    ${stationsHtml}
+    <div class="sub">Garage · ${s.tableWord} ${TABLE}</div>`;
+  currentBill.items.forEach(i => {
+    const price = parseInt(String(i.price).replace(/[^\d]/g,''),10) || 0;
+    html += `<div class="bill-line"><span class="n">${i.qty} × ${i.name}</span><span>${(price*i.qty).toLocaleString('ru-RU')}</span></div>`;
+  });
+  html += `<div class="bill-total"><span>${s.billTotal}</span><span>${currentBill.total.toLocaleString('ru-RU')} тг</span></div>
+    <div class="sub" style="margin-top:6px;">${s.billNotFiscal}</div>`;
+  body.innerHTML = html;
+}
+
+function requestBillFromModal(){
+  if(!TABLE || sessionExpired) return;
+  showConfirm(STR[LANG].confirmBillQuestion, null, () => {
+    if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+      liveSocket.send(JSON.stringify({type:"request_bill", table: TABLE}));
+    }
+    const btn = document.getElementById('billRequestBtn');
+    btn.disabled = true;
+    btn.textContent = STR[LANG].billRequestWaiting;
+    setTimeout(() => { btn.disabled = false; btn.textContent = STR[LANG].billRequestBtn; }, 30000);
+
+    const consent = localStorage.getItem('garage_guest_consent');
+    if(consent === null){
+      document.getElementById('consentAsk').style.display = 'block';
+    } else if(consent === 'yes'){
+      sendSaveGuestOrder();
+    }
+  });
+}
+
+function getOrCreateDeviceId(){
+  let id = localStorage.getItem('garage_device_id');
+  if(!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random()));
+    localStorage.setItem('garage_device_id', id);
+  }
+  return id;
+}
+// Only ever surfaces this device's id to the server when the guest has
+// actively opted in — first-time / opted-out visitors stay fully anonymous.
+function consentedDeviceId(){
+  return localStorage.getItem('garage_guest_consent') === 'yes' ? getOrCreateDeviceId() : null;
+}
+
+function sendSaveGuestOrder(){
+  if(!TABLE || !liveSocket || liveSocket.readyState !== WebSocket.OPEN) return;
+  liveSocket.send(JSON.stringify({type:"save_guest_order", deviceId: getOrCreateDeviceId(), table: TABLE}));
+}
+
+function answerConsent(yes){
+  document.getElementById('consentAsk').style.display = 'none';
+  localStorage.setItem('garage_guest_consent', yes ? 'yes' : 'no');
+  if(yes){
+    sendSaveGuestOrder();
+    document.getElementById('forgetMeRow').style.display = 'block';
+  }
+}
+
+function showConfirm(question, sub, onYes, danger){
+  document.getElementById('confirmQuestion').textContent = question;
+  const subEl = document.getElementById('confirmSub');
+  if(sub){ subEl.textContent = sub; subEl.style.display = 'block'; }
+  else { subEl.style.display = 'none'; }
+  const okBtn = document.getElementById('confirmOkBtn');
+  okBtn.className = 'confirm-ok' + (danger ? ' danger' : '');
+  okBtn.textContent = STR[LANG].confirmYes;
+  pendingConfirmCallback = onYes;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function confirmYes(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  const cb = pendingConfirmCallback;
+  pendingConfirmCallback = null;
+  if(cb) cb();
+}
+function confirmNo(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  pendingConfirmCallback = null;
+}
+
+function forgetMe(){
+  showConfirm(STR[LANG].forgetConfirmQuestion, STR[LANG].forgetConfirmSub, () => {
+    const deviceId = getOrCreateDeviceId();
+    if(liveSocket && liveSocket.readyState === WebSocket.OPEN){
+      liveSocket.send(JSON.stringify({type:"forget_guest", deviceId}));
+    }
+    localStorage.removeItem('garage_guest_consent');
+    localStorage.removeItem('garage_device_id'); // rotate to a fresh, unlinked id
+    document.getElementById('forgetMeRow').style.display = 'none';
+    alert(STR[LANG].forgottenAlert);
+  }, true);
+}
+
+function checkForUpdate(){
+  if(updateDismissed) return;
+  fetch(location.pathname, {cache:'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const m = html.match(/const APP_VERSION = "([^"]+)"/);
+      if(m && m[1] !== APP_VERSION){
+        document.getElementById('updateBanner').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+function applyUpdate(){
+  location.href = location.pathname + location.search + (location.search ? '&' : '?') + '_r=' + Date.now();
+}
+function dismissUpdateBanner(){
+  updateDismissed = true;
+  document.getElementById('updateBanner').style.display = 'none';
+}
+setTimeout(checkForUpdate, 5000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
+</script>
+<div class="photo-lb" id="photoLb" onclick="closePhoto()" role="dialog" aria-modal="true">
+  <figure onclick="event.stopPropagation()">
+    <img id="photoLbImg" alt="">
+    <figcaption>
+      <div class="lb-top"><span class="lb-name" id="photoLbName"></span><span class="lb-price" id="photoLbPrice"></span></div>
+      <div class="lb-desc" id="photoLbDesc"></div>
+    </figcaption>
+  </figure>
+  <button class="lb-close" onclick="closePhoto()" aria-label="Закрыть">×</button>
+</div>
+</body>
+</html>

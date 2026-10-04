@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Garage Music Bar — Монитор</title>
+<script>
+(function(){
+  var id = '';
+  try {
+    var m = /(?:^|[?&])staff=([^&]+)/.exec(location.search);
+    if (m) id = decodeURIComponent(m[1].replace(/\+/g, ' '));
+    if (!id) id = localStorage.getItem('garage_staff_id_monitor') || '';
+  } catch (e) {}
+  var l = document.createElement('link');
+  l.rel = 'manifest';
+  l.id = 'manifestLink';
+  l.href = '/manifest-monitor.json' + (id ? ('?staff=' + encodeURIComponent(id)) : '');
+  document.head.appendChild(l);
+})();
+</script>
+<meta name="theme-color" content="#8A7FD6">
+<link rel="apple-touch-icon" href="/icons/icon-monitor-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Garage Монитор">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1A1526; --bg-deep:#120E1C; --panel:#241D36; --line:#382C4F;
+    --gold:#8A7FD6; --cream:#EDEAF7; --muted:#9086B0; --green:#4CAF7D; --red:#D9534F;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; min-height:100vh; }
+  header{ position:sticky; top:0; z-index:20; background:var(--bg-deep); border-bottom:1px solid var(--line); padding:16px 18px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  header h1{ font-family:'Fraunces',serif; font-size:20px; margin:0 0 2px; }
+  header .conn{ font-size:13px; color:var(--muted); }
+  header .conn.on{ color:var(--green); }
+  header .conn.off{ color:var(--red); }
+  header button{ background:var(--bg-deep); color:var(--gold); border:1px solid var(--line); padding:7px 12px; border-radius:8px; font-weight:700; font-size:14px; }
+
+  main{ padding:16px 18px; max-width:520px; margin:0 auto; }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes popIn{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+
+  .lock{ position:fixed; inset:0; background:var(--bg-deep); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; animation: fadeIn .25s ease; }
+  .lock-box{ width:100%; max-width:300px; text-align:center; animation: popIn .3s cubic-bezier(.2,1,.3,1); }
+  .lock-box h2{ font-family:'Fraunces',serif; color:var(--cream); margin-bottom:6px; }
+  .lock-box p{ color:var(--muted); font-size:15px; margin-bottom:18px; }
+  .lock-box input{ width:100%; text-align:center; font-size:24px; letter-spacing:8px; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--cream); margin-bottom:12px; }
+  .lock-box button{ width:100%; padding:13px; border:none; border-radius:12px; background:var(--gold); color:var(--bg-deep); font-weight:700; font-size:16.5px; }
+  .lock-box .err{ color:var(--red); font-size:14.5px; min-height:16px; margin-top:8px; }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:16px; }
+  .tabs button{ flex:1; padding:9px 0; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--muted); font-weight:600; font-size:15px; }
+  .tabs button.active{ background:var(--gold); border-color:var(--gold); color:var(--bg-deep); }
+
+  .feed-item{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px; animation: fadeIn .25s ease; }
+  .feed-item .time{ font-size:13px; color:var(--muted); margin-bottom:4px; }
+  .feed-item .text{ font-size:15.5px; line-height:1.4; }
+  .feed-item .cat{ display:inline-block; font-size:12px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+  .empty{ text-align:center; color:var(--muted); padding:40px 0; font-size:15.5px; }
+
+  .pref-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:8px; }
+  .pref-row .label{ font-size:15.5px; font-weight:600; }
+  .pref-row .desc{ font-size:13.5px; color:var(--muted); margin-top:2px; }
+  .switch{ position:relative; width:44px; height:26px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch .slider{ position:absolute; inset:0; background:var(--line); border-radius:999px; transition:.2s; cursor:pointer; }
+  .switch .slider::before{ content:''; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + .slider{ background:var(--gold); }
+  .switch input:checked + .slider::before{ transform:translateX(18px); }
+
+  .settings-links{ text-align:center; margin-top:22px; font-size:14.5px; }
+  .settings-links a{ color:var(--muted); text-decoration:underline; margin:0 8px; }
+</style>
+</head>
+<body>
+
+<div class="lock" id="lock">
+  <div class="lock-box">
+    <h2>Garage · Монитор</h2>
+    <p id="lockMsg">У вас нет доступа. Обратитесь к мастер-менеджеру, чтобы получить персональную QR-ссылку.</p>
+    <input id="unlockPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" style="display:none;">
+    <button id="unlockBtn" onclick="submitUnlockPin()" style="display:none;">Войти</button>
+    <button id="backToStaffBtn" onclick="location.href='/staff.html'" style="display:none; background:var(--panel); color:var(--cream); border:1px solid var(--line); margin-top:10px;">Вернуться к выбору</button>
+    <div class="err" id="pinErr"></div>
+  </div>
+</div>
+
+<div id="notifPermBanner" style="display:none; position:sticky; top:0; z-index:149; background:var(--red); color:#fff; padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:14.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1); flex-wrap:wrap;">
+  <span style="min-width:0; word-break:break-word; flex:1 1 auto;">Уведомления выключены — вы можете пропустить событие</span>
+  <button onclick="requestNotifPermission()" style="background:#fff; color:var(--red); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px; flex-shrink:0;">Включить</button>
+</div>
+
+<div id="updateBanner" style="display:none; position:sticky; top:0; z-index:150; background:var(--gold); color:var(--bg-deep); padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:14.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1);">
+  <span>Доступна новая версия приложения</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button onclick="applyUpdate()" style="background:var(--bg-deep); color:var(--gold); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px;">Обновить</button>
+    <button onclick="dismissUpdateBanner()" style="background:transparent; border:none; color:var(--bg-deep); font-size:17.5px; font-weight:700; padding:0 4px;">×</button>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>Garage Music Bar — Монитор</h1>
+    <div class="conn off" id="conn">подключение…</div>
+  </div>
+  <button onclick="logoutDevice()">Выйти</button>
+</header>
+
+<main>
+  <div class="tabs">
+    <button id="tabFeedBtn" class="active" onclick="setMode('feed')">Лента</button>
+    <button id="tabSettingsBtn" onclick="setMode('settings')">Настройки</button>
+  </div>
+
+  <div id="feedView"></div>
+
+  <div id="settingsView" style="display:none">
+    <p style="font-size:14.5px; color:var(--muted); margin:-4px 0 14px;">Какие события присылать пуш-уведомлением. В ленте видно всё независимо от этих настроек.</p>
+    <div id="prefsList"></div>
+    <div class="settings-links"><a href="#" onclick="changePinPrompt();return false;">Сменить PIN</a></div>
+  </div>
+</main>
+
+<script>
+const ROLE = "monitor";
+const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + "api.restorun.kuatov.kz/ws?venue=garage-music-bar";
+
+let socket = null;
+let staffId = null;
+let staff = [];
+let actionLog = [];
+let mode = "feed";
+let vapidPublicKey = null;
+let swRegistration = null;
+let locked = false;
+let triedDefaultPin = false;
+let unknownStaffRetries = 0;
+let pendingNewPin = null;
+
+const CATEGORY_META = {
+  orders:  { label: "Заказы",         desc: "Новый заказ, принято в работу, готово, выдано, стол закрыт" },
+  calls:   { label: "Вызовы гостей",  desc: "Позвать официанта, просьбы (салфетки и т.п.), запрос счёта" },
+  cancels: { label: "Отмены",         desc: "Запрос отмены, подтверждение/отказ, повтор заказа" },
+  staff:   { label: "Сотрудники",     desc: "Добавление/удаление, смена устройства, PIN, мастер-права" },
+  menu:    { label: "Меню и склад",   desc: "Изменения меню, наличие позиций, остатки на складе" },
+  rooms:   { label: "Залы и QR",      desc: "Залы, столы, привязка QR-кодов" },
+  other:   { label: "Прочее",         desc: "Всё остальное, например Wi-Fi для гостей" },
+};
+let prefs = { orders:true, calls:true, cancels:true, staff:true, menu:true, rooms:true, other:true };
+
+function initStaffId(){
+  const url = new URL(window.location.href);
+  const fromUrl = url.searchParams.get('staff');
+  if(fromUrl){
+    localStorage.setItem('garage_staff_id_'+ROLE, fromUrl);
+    url.searchParams.delete('staff');
+    history.replaceState(null, "", url.pathname + url.search);
+  }
+  staffId = localStorage.getItem('garage_staff_id_'+ROLE);
+}
+function getStaffPin(){ return localStorage.getItem('garage_staff_pin_'+ROLE); }
+function setStaffPin(p){ localStorage.setItem('garage_staff_pin_'+ROLE, p); }
+function clearStaffPin(){ localStorage.removeItem('garage_staff_pin_'+ROLE); }
+
+function setMode(m){
+  mode = m;
+  document.getElementById('tabFeedBtn').classList.toggle('active', m==='feed');
+  document.getElementById('tabSettingsBtn').classList.toggle('active', m==='settings');
+  document.getElementById('feedView').style.display = m==='feed' ? '' : 'none';
+  document.getElementById('settingsView').style.display = m==='settings' ? '' : 'none';
+  if(m==='feed') renderFeed();
+  if(m==='settings') renderPrefs();
+}
+
+const ROLE_LABELS_LOG = { waiter: "Официант", cook: "Повар", bartender: "Бармен", manager: "Менеджер", monitor: "Монитор" };
+function tableLabelLocal(n){ return n === undefined || n === null ? "" : ("№" + n); }
+function actionText(e){
+  const d = e.details || {};
+  const who = e.staffName || ROLE_LABELS_LOG[e.role] || "Кто-то";
+  const t = tableLabelLocal;
+  switch(e.action){
+    case "new_order": return `${who} создал заказ — стол ${t(d.table)} (кухня: ${d.kitchenCount}, бар: ${d.barCount})`;
+    case "kitchen_accept": return `${who} принял в работу — стол ${t(d.table)} (кухня)`;
+    case "bar_accept": return `${who} принял в работу — стол ${t(d.table)} (бар)`;
+    case "kitchen_ready": return `${who} отметил готово — стол ${t(d.table)} (кухня)`;
+    case "bar_ready": return `${who} отметил готово — стол ${t(d.table)} (бар)`;
+    case "served": return `${who} выдал заказ гостю — стол ${t(d.table)}`;
+    case "close_table": return `${who} закрыл стол ${t(d.table)} — ${(d.total||0).toLocaleString('ru-RU')} тг`;
+    case "disable_items": return `${who} убрал из меню (${d.dest==='kitchen'?'кухня':'бар'}): ${(d.names||[]).join(', ')}`;
+    case "enable_items": return `${who} вернул в меню (${d.dest==='kitchen'?'кухня':'бар'}): ${(d.names||[]).join(', ')}`;
+    case "set_stock": return `${who} обновил склад (${d.dest==='kitchen'?'кухня':'бар'}): ${d.name} — остаток ${d.qty}, порог ${d.threshold}`;
+    case "clear_stock": return `${who} снял отслеживание склада: ${d.name}`;
+    case "create_staff": return `${who} добавил сотрудника: ${ROLE_LABELS_LOG[d.role]||d.role}`;
+    case "delete_staff": return `${who} удалил сотрудника: ${d.name || ROLE_LABELS_LOG[d.role] || ''}`;
+    case "reassign_staff": return `${who} переназначил устройство сотрудника: ${d.name || ROLE_LABELS_LOG[d.role] || ''}`;
+    case "promote_master": return `${who} передал мастер-права: ${d.name || ''}`;
+    case "create_room": return `${who} создал зал «${d.name}»`;
+    case "update_room": return `${who} изменил зал «${d.name}» (столов: ${d.tableCount})`;
+    case "delete_room": return `${who} удалил зал «${d.name || ''}»`;
+    case "set_name": return `${who} задал имя: ${d.name}`;
+    case "set_staff_pin": return `${who} сменил свой личный PIN`;
+    case "change_pin": return `${who} сменил PIN (${ROLE_LABELS_LOG[d.role]||d.role})`;
+    case "assign_qr": return `${who} привязал QR к столу ${t(d.table)}`;
+    case "unassign_qr": return `${who} отвязал QR-код`;
+    case "call_waiter": return `Стол ${t(d.table)} позвал официанта`;
+    case "guest_quick_request": return `Стол ${t(d.table)} просит: ${d.what||''}`;
+    case "guest_repeat_request": return `Стол ${t(d.table)} хочет повторить заказ`;
+    case "request_bill": return `Стол ${t(d.table)} попросил расчёт`;
+    case "request_cancel_order": return `${who} запросил отмену заказа — стол ${t(d.table)}`;
+    case "approve_cancel": return `${who} подтвердил отмену заказа — стол ${t(d.table)}`;
+    case "reject_cancel": return `${who} отклонил отмену заказа — стол ${t(d.table)}`;
+    case "confirm_repeat_request": return `${who} подтвердил повтор заказа — стол ${t(d.table)}`;
+    case "reject_repeat_request": return `${who} отклонил повтор заказа`;
+    case "add_menu_category": return `${who} добавил категорию меню: ${d.title||''}`;
+    case "rename_menu_category": return `${who} переименовал категорию меню: ${d.title||''}`;
+    case "delete_menu_category": return `${who} удалил категорию меню: ${d.title||''}`;
+    case "add_menu_item": return `${who} добавил в меню: ${d.name||''}`;
+    case "update_menu_item": return `${who} изменил позицию меню: ${d.name||''}`;
+    case "delete_menu_item": return `${who} удалил из меню: ${d.name||''}`;
+    case "set_wifi": return `${who} ${d.enabled ? "включил" : "выключил"} Wi-Fi для гостей`;
+    default: return `${who}: ${e.action}`;
+  }
+}
+const ACTION_CATEGORY = {
+  new_order:"orders", kitchen_accept:"orders", bar_accept:"orders", kitchen_ready:"orders",
+  bar_ready:"orders", served:"orders", close_table:"orders",
+  call_waiter:"calls", guest_quick_request:"calls", guest_repeat_request:"calls", request_bill:"calls",
+  request_cancel_order:"cancels", approve_cancel:"cancels", reject_cancel:"cancels",
+  confirm_repeat_request:"cancels", reject_repeat_request:"cancels",
+  create_staff:"staff", delete_staff:"staff", reassign_staff:"staff", promote_master:"staff",
+  set_name:"staff", set_staff_pin:"staff", change_pin:"staff",
+  add_menu_category:"menu", rename_menu_category:"menu", delete_menu_category:"menu",
+  add_menu_item:"menu", update_menu_item:"menu", delete_menu_item:"menu",
+  disable_items:"menu", enable_items:"menu", set_stock:"menu", clear_stock:"menu",
+  create_room:"rooms", update_room:"rooms", delete_room:"rooms", assign_qr:"rooms", unassign_qr:"rooms",
+};
+
+function renderFeed(){
+  const el = document.getElementById('feedView');
+  if(!actionLog.length){ el.innerHTML = `<div class="empty">Пока нет событий</div>`; return; }
+  const items = actionLog.slice().reverse().slice(0, 200);
+  el.innerHTML = items.map(e => {
+    const cat = ACTION_CATEGORY[e.action] || "other";
+    const d = new Date(e.ts);
+    const time = d.toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+    return `<div class="feed-item">
+      <div class="cat">${(CATEGORY_META[cat]||{}).label || cat}</div>
+      <div class="time">${time}</div>
+      <div class="text">${actionText(e)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderPrefs(){
+  const me = staff.find(s => s.id === staffId);
+  if(me && me.notifyPrefs) prefs = Object.assign({}, prefs, me.notifyPrefs);
+  const el = document.getElementById('prefsList');
+  el.innerHTML = Object.keys(CATEGORY_META).map(key => {
+    const m = CATEGORY_META[key];
+    return `<div class="pref-row">
+      <div>
+        <div class="label">${m.label}</div>
+        <div class="desc">${m.desc}</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" ${prefs[key] ? 'checked' : ''} onchange="togglePref('${key}', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>`;
+  }).join('');
+}
+function togglePref(key, val){
+  prefs[key] = val;
+  if(socket && socket.readyState === WebSocket.OPEN){
+    socket.send(JSON.stringify({type:"set_notify_prefs", prefs}));
+  }
+}
+
+function showLock(){
+  document.getElementById('lockMsg').textContent = "У вас нет доступа. Обратитесь к мастер-менеджеру, чтобы получить персональную QR-ссылку.";
+  document.getElementById('unlockPinInput').style.display = 'none';
+  document.getElementById('unlockBtn').style.display = 'none';
+  document.getElementById('backToStaffBtn').style.display = 'block';
+  document.getElementById('lock').style.display = 'flex';
+}
+function showUnlockScreen(err){
+  locked = true;
+  document.getElementById('lockMsg').textContent = "Сессия заперта. Введите свой PIN, чтобы продолжить работу.";
+  document.getElementById('unlockPinInput').style.display = 'block';
+  document.getElementById('unlockBtn').style.display = 'block';
+  document.getElementById('backToStaffBtn').style.display = 'none';
+  document.getElementById('pinErr').textContent = err || "";
+  document.getElementById('unlockPinInput').value = "";
+  document.getElementById('lock').style.display = 'flex';
+}
+function hideLock(){ document.getElementById('lock').style.display = 'none'; }
+function submitUnlockPin(){
+  const p = document.getElementById('unlockPinInput').value.trim();
+  if(!/^\d{4,6}$/.test(p)) return;
+  locked = false;
+  setStaffPin(p);
+  document.getElementById('pinErr').textContent = "";
+  connect();
+}
+
+function connect(){
+  if(!staffId){ showLock(); return; }
+  let pin = getStaffPin();
+  let usedDefaultGuess = false;
+  if(!pin){
+    if(!triedDefaultPin){
+      triedDefaultPin = true;
+      usedDefaultGuess = true;
+      pin = "1111";
+    } else {
+      showUnlockScreen();
+      return;
+    }
+  }
+  socket = new WebSocket(WS_URL);
+  socket.onopen = () => {
+    setConn(true);
+    socket.send(JSON.stringify({type:"hello", role:ROLE, staffId, pin}));
+  };
+  socket.onclose = () => { setConn(false); if(!locked) setTimeout(connect, 2000); };
+  socket.onerror = () => socket.close();
+  socket.onmessage = (evt) => {
+    let msg;
+    try { msg = JSON.parse(evt.data); } catch(e){ return; }
+
+    if(msg.type === "auth_ok"){ hideLock(); setStaffPin(pin); unknownStaffRetries = 0; }
+
+    if(msg.type === "auth_error"){
+      if(msg.reason === "unknown_staff"){
+        if(unknownStaffRetries < 1){
+          unknownStaffRetries++;
+          setTimeout(connect, 1200);
+          return;
+        }
+        localStorage.removeItem('garage_staff_id_'+ROLE);
+        clearStaffPin();
+        staffId = null;
+        document.getElementById('lockMsg').textContent = "Вы не являетесь монитором. Обратитесь к мастер-менеджеру, чтобы вас добавили.";
+        document.getElementById('unlockPinInput').style.display = 'none';
+        document.getElementById('unlockBtn').style.display = 'none';
+        document.getElementById('backToStaffBtn').style.display = 'block';
+        document.getElementById('lock').style.display = 'flex';
+      } else if(msg.reason === "wrong_pin"){
+        clearStaffPin();
+        showUnlockScreen(usedDefaultGuess ? "" : "Неверный PIN");
+      } else {
+        showLock();
+      }
+      return;
+    }
+
+    if(msg.type === "state"){
+      staff = msg.staff || staff;
+      actionLog = msg.actionLog || actionLog;
+      vapidPublicKey = msg.vapidPublicKey || vapidPublicKey;
+      if(vapidPublicKey) setupPush();
+      if(mode === 'feed') renderFeed();
+      if(mode === 'settings') renderPrefs();
+    }
+
+    if(msg.type === "staff_pin_changed"){
+      if(pendingNewPin){ setStaffPin(pendingNewPin); pendingNewPin = null; }
+      alert("PIN обновлён.");
+    }
+    if(msg.type === "staff_pin_change_error"){ alert("Не удалось сменить PIN — используйте 4-6 цифр."); }
+
+    if(msg.type === "push_registered"){
+      const c = document.getElementById('conn');
+      if(c) c.textContent = "в сети · push OK (" + msg.total + ")";
+    }
+  };
+}
+
+function setConn(on){
+  const el = document.getElementById('conn');
+  el.textContent = on ? "в сети" : "нет связи";
+  el.className = "conn " + (on ? "on" : "off");
+}
+
+function logoutDevice(){
+  if(confirm("Выйти с этого устройства?")){
+    unregisterPush();
+    localStorage.removeItem('garage_staff_id_'+ROLE);
+    clearStaffPin();
+    location.href = '/staff.html';
+  }
+}
+async function unregisterPush(){
+  try{
+    if(swRegistration){
+      const sub = await swRegistration.pushManager.getSubscription();
+      if(sub){
+        const pushId = localStorage.getItem('garage_push_id_'+ROLE);
+        if(socket && socket.readyState === WebSocket.OPEN && pushId){
+          socket.send(JSON.stringify({type:'unregister_push', pushId}));
+        }
+        await sub.unsubscribe();
+      }
+    }
+  }catch(e){}
+}
+
+function changePinPrompt(){
+  const p1 = prompt("Новый PIN (4-6 цифр):");
+  if(p1 === null) return;
+  const clean = p1.trim();
+  if(!/^\d{4,6}$/.test(clean)){ alert("PIN должен состоять из 4-6 цифр"); return; }
+  pendingNewPin = clean;
+  if(socket && socket.readyState === WebSocket.OPEN){
+    socket.send(JSON.stringify({type:"set_staff_pin", staffId, newPin: clean}));
+  }
+}
+
+// --- push notifications (same pattern as waiter/manager/cook/bartender) ---
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+  try{ swRegistration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }); }catch(e){ /* not fatal — installability may be degraded, but the app still works */ }
+}
+registerServiceWorker();
+
+let pushSetupDone = false;
+let pushSetupInFlight = false;
+async function setupPush(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if(!vapidPublicKey) return;
+  if(!("Notification" in window) || Notification.permission !== 'granted') return;
+  if(!socket || socket.readyState !== WebSocket.OPEN) return;
+  if(pushSetupInFlight) return;
+  pushSetupInFlight = true;
+  try{
+    const reg = swRegistration || await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+    await navigator.serviceWorker.ready;
+    swRegistration = reg;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
+    }
+    let pushId = localStorage.getItem('garage_push_id_'+ROLE);
+    if(!pushId){ pushId = (crypto.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random())); localStorage.setItem('garage_push_id_'+ROLE, pushId); }
+    socket.send(JSON.stringify({type:'register_push', pushId, subscription: sub.toJSON()}));
+    pushSetupDone = true;
+  }catch(e){
+    pushSetupDone = false;
+  }finally{
+    pushSetupInFlight = false;
+  }
+}
+
+function isIos(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream; }
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function updateNotifPermBanner(){
+  const banner = document.getElementById('notifPermBanner');
+  if(!banner) return;
+  if(!("Notification" in window)){ banner.style.display = 'none'; return; }
+  const standalone = isStandalone();
+  const textEl = banner.querySelector('span');
+  const btnEl = banner.querySelector('button');
+  if(Notification.permission === "granted"){ banner.style.display = 'none'; return; }
+  if(isIos() && !standalone){
+    textEl.textContent = "На iPhone уведомления при выключенном экране работают только из иконки на «Домой». Откройте приложение с иконки и нажмите «Включить».";
+    btnEl.style.display = 'none';
+    banner.style.display = 'flex';
+    return;
+  }
+  if(Notification.permission === "denied"){
+    textEl.textContent = isIos()
+      ? "Уведомления заблокированы — включите вручную: Настройки → Safari/приложение → Уведомления"
+      : "Уведомления заблокированы браузером — откройте значок 🔒 рядом с адресом сайта → Разрешения → Уведомления → Разрешить";
+    btnEl.style.display = 'none';
+  } else {
+    textEl.textContent = "Уведомления выключены — вы можете пропустить событие";
+    btnEl.style.display = 'inline-block';
+  }
+  banner.style.display = 'flex';
+}
+function requestNotifPermission(){
+  if(!("Notification" in window)) return;
+  Notification.requestPermission().then((perm) => {
+    updateNotifPermBanner();
+    if(perm === 'granted') setupPush();
+  });
+}
+updateNotifPermBanner();
+
+// --- update banner ---
+const APP_VERSION = "1";
+let updateDismissed = false;
+function checkForUpdate(){
+  if(updateDismissed) return;
+  fetch(location.pathname, {cache:'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const m = html.match(/const APP_VERSION = "([^"]+)"/);
+      if(m && m[1] !== APP_VERSION){
+        document.getElementById('updateBanner').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+function applyUpdate(){
+  const url = new URL(location.href);
+  url.searchParams.set('_r', String(Date.now()));
+  location.href = url.pathname + url.search;
+}
+function dismissUpdateBanner(){
+  updateDismissed = true;
+  document.getElementById('updateBanner').style.display = 'none';
+}
+setTimeout(checkForUpdate, 5000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) return;
+  checkForUpdate();
+  updateNotifPermBanner();
+  setupPush();
+});
+
+initStaffId();
+connect();
+</script>
+</body>
+</html>

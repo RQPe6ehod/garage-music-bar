@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Garage Music Bar — Персонал</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#142720; --bg-deep:#0E1D17; --panel:#1C3628; --line:#2C4A3A; --gold:#C79A46; --cream:#F3EEDF; --muted:#8FA08D; --red:#D9534F; }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .wrap{ width:100%; max-width:400px; text-align:center; }
+  h1{ font-family:'Fraunces',serif; font-size:26px; margin-bottom:6px; }
+  p{ color:var(--muted); font-size:13px; margin-bottom:26px; }
+  .role{
+    display:flex; align-items:center; gap:14px; text-decoration:none; color:var(--cream); cursor:pointer;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:12px;
+    font-family:'Fraunces',serif; font-size:17px; font-weight:600; text-align:left;
+  }
+  .role.registered{ border-color:var(--gold); }
+  .role .emoji{ font-size:24px; }
+  .role small{ display:block; font-family:'Inter',sans-serif; font-weight:400; font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .role .name-badge{ display:block; font-family:'Inter',sans-serif; font-weight:600; font-size:12px; color:var(--gold); margin-top:2px; }
+
+  .denied{ display:none; background:rgba(217,83,79,.12); border:1px solid var(--red); border-radius:12px; padding:14px 16px; margin:-2px 0 12px; text-align:left; }
+  .denied.open{ display:block; }
+  .denied p{ color:var(--cream); font-size:13px; margin:0 0 10px; }
+  .denied .actions{ display:flex; gap:8px; }
+  .denied button, .denied a{ flex:1; padding:9px; border-radius:8px; border:1px solid var(--line); background:var(--bg-deep); color:var(--cream); font-size:12px; font-weight:600; text-align:center; text-decoration:none; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div id="updateBanner" style="display:none; position:sticky; top:0; z-index:150; background:var(--gold); color:var(--bg-deep); padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; font-weight:700;">
+  <span>Доступна новая версия</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button onclick="applyUpdate()" style="background:var(--bg-deep); color:var(--gold); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px;">Обновить</button>
+    <button onclick="dismissUpdateBanner()" style="background:transparent; border:none; color:var(--bg-deep); font-size:16px; font-weight:700; padding:0 4px;">×</button>
+  </div>
+</div>
+<div class="wrap">
+  <h1>Garage Music Bar</h1>
+  <p>Выберите рабочее место</p>
+  <div id="roles"></div>
+</div>
+
+<script>
+const ROLES = [
+  { key:"waiter", page:"waiter.html", emoji:"🧾", label:"Официант", desc:"Приём и передача заказов" },
+  { key:"cook", page:"cook.html", emoji:"🍳", label:"Кухня", desc:"Кухонные тикеты" },
+  { key:"bartender", page:"bartender.html", emoji:"🍸", label:"Бар", desc:"Барные тикеты" },
+  { key:"manager", page:"manager.html", emoji:"📊", label:"Менеджер", desc:"Все заказы и выручка" },
+];
+
+function render(){
+  const el = document.getElementById('roles');
+  let html = "";
+  ROLES.forEach(r => {
+    const id = localStorage.getItem('garage_staff_id_'+r.key);
+    const name = localStorage.getItem('garage_staff_name_'+r.key);
+    if(id){
+      html += `<a class="role registered" href="/${r.page}">
+        <span class="emoji">${r.emoji}</span>
+        <span>${r.label}${name?`<span class="name-badge">${name}</span>`:''}<small>${r.desc}</small></span>
+      </a>`;
+    } else {
+      html += `<div class="role" onclick="tryRole('${r.key}')">
+        <span class="emoji">${r.emoji}</span>
+        <span>${r.label}<small>${r.desc}</small></span>
+      </div>
+      <div class="denied" id="denied-${r.key}">
+        <p>Вы не являетесь ${roleGenitive(r.label)}. Обратитесь к менеджеру, чтобы вас добавили.</p>
+        <div class="actions">
+          <button onclick="hideDenied('${r.key}')" style="flex:1;">Понятно</button>
+        </div>
+      </div>`;
+    }
+  });
+  el.innerHTML = html;
+}
+
+function roleGenitive(label){
+  const map = { "Официант":"официантом", "Кухня":"поваром", "Бар":"барменом", "Менеджер":"менеджером" };
+  return map[label] || label.toLowerCase();
+}
+
+function tryRole(key){
+  document.getElementById('denied-'+key).classList.add('open');
+}
+function hideDenied(key){
+  document.getElementById('denied-'+key).classList.remove('open');
+}
+
+render();
+
+const APP_VERSION = "2";
+let updateDismissed = false;
+function checkForUpdate(){
+  if(updateDismissed) return;
+  fetch(location.pathname, {cache:'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const m = html.match(/const APP_VERSION = "([^"]+)"/);
+      if(m && m[1] !== APP_VERSION){
+        document.getElementById('updateBanner').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+function applyUpdate(){
+  location.href = location.pathname + '?_r=' + Date.now();
+}
+function dismissUpdateBanner(){
+  updateDismissed = true;
+  document.getElementById('updateBanner').style.display = 'none';
+}
+setTimeout(checkForUpdate, 5000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
+</script>
+</body>
+</html>

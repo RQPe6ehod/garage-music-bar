@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Garage Music Bar — Официант</title>
+<script>
+(function(){
+  var id = '';
+  try {
+    var m = /(?:^|[?&])staff=([^&]+)/.exec(location.search);
+    if (m) id = decodeURIComponent(m[1].replace(/\+/g, ' '));
+    if (!id) id = localStorage.getItem('garage_staff_id_waiter') || '';
+  } catch (e) {}
+  var l = document.createElement('link');
+  l.rel = 'manifest';
+  l.id = 'manifestLink';
+  l.href = '/manifest-waiter.json' + (id ? ('?staff=' + encodeURIComponent(id)) : '');
+  document.head.appendChild(l);
+})();
+</script>
+<meta name="theme-color" content="#C79A46">
+<link rel="apple-touch-icon" href="/icons/icon-waiter-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Garage Официант">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#142720; --bg-deep:#0E1D17; --panel:#1C3628; --line:#2C4A3A;
+    --gold:#C79A46; --cream:#F3EEDF; --muted:#8FA08D;
+    --red:#D9534F; --green:#4CAF7D;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; padding-bottom:100px; }
+  header{ position:sticky; top:0; z-index:20; background:var(--bg-deep); border-bottom:1px solid var(--line); padding:16px 18px; }
+  header h1{ font-family:'Fraunces',serif; font-size:20px; margin:0 0 2px; }
+  header .conn{ font-size:13px; color:var(--muted); }
+  header .conn.on{ color:var(--green); }
+  header .conn.off{ color:var(--red); }
+
+  main{ padding:16px 18px; max-width:520px; margin:0 auto; }
+
+  .table-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:16px; }
+  .table-row button{
+    flex:0 0 auto; width:52px; height:52px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--line); color:var(--cream);
+    font-family:'Fraunces',serif; font-weight:700; font-size:18px;
+    position:relative;
+  }
+  .table-row button.active{ background:var(--gold); border-color:var(--gold); color:var(--bg-deep); }
+  .table-row button.occupied::after{
+    content:''; position:absolute; top:5px; right:5px; width:7px; height:7px;
+    border-radius:50%; background:var(--green);
+  }
+  .table-row button.occupied.active::after{ background:var(--bg-deep); }
+  .table-row button.calling{ border-color:var(--red); animation: callPulse 1s ease-in-out infinite; }
+  @keyframes callPulse{
+    0%,100%{ background:var(--panel); color:var(--cream); box-shadow:0 0 0 2px var(--red); transform:scale(1); }
+    50%{ background:var(--red); color:#fff; box-shadow:0 0 0 7px rgba(217,83,79,.45); transform:scale(1.1); }
+  }
+  .table-row button.bill-requested{ border-color:var(--gold); box-shadow:0 0 0 2px var(--gold); animation: billPulse 1.1s ease-in-out infinite; }
+  @keyframes billPulse{ 0%,100%{ box-shadow:0 0 0 2px var(--gold); } 50%{ box-shadow:0 0 0 5px rgba(199,154,70,.4); } }
+  .table-row button.returning-guest{ border-color:#8a7fd6; box-shadow:0 0 0 2px #8a7fd6; animation: returnPulse 1.4s ease-in-out infinite; }
+  @keyframes returnPulse{ 0%,100%{ box-shadow:0 0 0 2px #8a7fd6; } 50%{ box-shadow:0 0 0 5px rgba(138,127,214,.35); } }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes popIn{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+  @keyframes slideUpIn{ from{ opacity:0; transform:translateY(24px); } to{ opacity:1; transform:translateY(0); } }
+  .room-group{ margin-bottom:10px; }
+  .room-label{ font-family:'Fraunces',serif; color:var(--gold); font-size:15px; margin-bottom:6px; }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:12px; }
+  .tabs button{ flex:1; padding:9px 0; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--muted); font-weight:600; font-size:15px; }
+  .tabs button.active{ background:var(--gold); border-color:var(--gold); color:var(--bg-deep); }
+
+  .cat{ margin-bottom:18px; }
+  .cat h3{ font-family:'Fraunces',serif; color:var(--gold); font-size:17.5px; margin:0 0 8px; }
+  .item{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); }
+  .item .name{ flex:1; font-size:16px; }
+  .item .price{ font-size:14px; color:var(--muted); }
+  .item.disabled{ opacity:.55; }
+  .item.disabled .name{ text-decoration:line-through; }
+  .unavail-tag{ font-size:12.5px; color:var(--red); border:1px solid var(--red); border-radius:999px; padding:1px 7px; margin-left:6px; }
+  .note-btn{ width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--bg-deep); color:var(--muted); font-size:15.5px; margin-right:4px; }
+  .note-btn.has-note{ border-color:var(--gold); color:var(--gold); }
+  .qty{ display:flex; align-items:center; gap:8px; }
+  .qty button{ width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--bg-deep); color:var(--cream); font-size:18px; }
+  .qty span{ min-width:16px; text-align:center; font-weight:600; }
+  .item-variants{ flex-direction:column; align-items:stretch; gap:6px; }
+  .item-variants .name{ font-size:16px; margin-bottom:2px; }
+  .variant-row{ display:flex; align-items:center; gap:10px; padding-left:6px; }
+  .variant-row .price{ min-width:56px; }
+
+  .dest-tabs{ display:flex; gap:6px; margin-bottom:12px; }
+  .guest-history-banner{
+    background:rgba(199,154,70,.14); border:1px solid var(--gold); border-radius:12px;
+    padding:11px 14px; margin-bottom:12px; font-size:15px; color:var(--gold); font-weight:600;
+  }
+  .guest-history-banner .items{ font-weight:400; color:var(--cream); margin-top:3px; }
+  .dest-tabs button{ flex:1; padding:9px 0; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--muted); font-weight:600; font-size:15px; }
+  .dest-tabs button.active{ background:var(--gold); border-color:var(--gold); color:var(--bg-deep); }
+
+  .chip-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:6px; scrollbar-width:none; }
+  .chip-row::-webkit-scrollbar{ display:none; }
+  .chip-row button{ flex:0 0 auto; white-space:nowrap; background:var(--panel); border:1px solid var(--line); color:var(--muted); font-size:14.5px; font-weight:500; padding:7px 13px; border-radius:999px; }
+  .chip-row button.active{ background:var(--gold); border-color:var(--gold); color:var(--bg-deep); font-weight:600; }
+  .chip-row button.has-items{ border-color:var(--gold); color:var(--gold); }
+
+  .accordion-cat{ border-bottom:1px solid var(--line); }
+  .accordion-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 2px; cursor:pointer; }
+  .accordion-head h3{ font-family:'Fraunces',serif; color:var(--gold); font-size:17.5px; margin:0; display:flex; align-items:center; gap:8px; }
+  .accordion-head .count{ background:var(--gold); color:var(--bg-deep); font-size:13px; font-weight:700; border-radius:999px; padding:1px 8px; }
+  .accordion-head .chevron{ color:var(--muted); font-size:15px; transition:transform .2s ease; }
+  .accordion-head.open .chevron{ transform:rotate(180deg); }
+  .accordion-body{ display:none; padding-bottom:8px; }
+  .accordion-body.open{ display:block; }
+
+  .cart-bar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--gold); color:var(--bg-deep);
+    padding:14px 20px; display:flex; justify-content:space-between; align-items:center;
+    font-weight:700; font-family:'Fraunces',serif; font-size:17.5px; z-index:30;
+    animation: slideUpIn .28s cubic-bezier(.2,1,.3,1);
+  }
+  .cart-bar.hidden{ display:none; }
+  .cart-bar-btn{
+    background:var(--bg-deep); color:var(--gold); border:none; border-radius:999px;
+    padding:11px 18px; font-weight:700; font-family:'Fraunces',serif; font-size:16.5px;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+  }
+
+  section.board{ margin-top:6px; }
+  section.board h2{ font-family:'Fraunces',serif; font-size:19px; color:var(--gold); margin-bottom:10px; }
+  .ticket{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+  .ticket .top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .ticket .table-badge{ font-family:'Fraunces',serif; font-weight:700; color:var(--gold); }
+  .badge{ font-size:13px; padding:3px 9px; border-radius:999px; font-weight:600; }
+  .badge.pending{ background:rgba(199,154,70,.18); color:var(--gold); }
+  .badge.ready{ background:rgba(76,175,125,.18); color:var(--green); }
+  .ticket .line{ font-size:15px; color:var(--cream); margin-bottom:2px; }
+  .ticket .line small{ color:var(--muted); }
+  .serve-btn{ margin-top:8px; width:100%; padding:10px; border:none; border-radius:10px; background:var(--green); color:#0E1D17; font-weight:700; }
+  .countdown{ margin-top:8px; text-align:center; font-size:14.5px; font-weight:700; color:var(--gold); }
+  .countdown.urgent{ color:var(--red); animation: pulseUrgent 1s ease-in-out infinite; }
+  @keyframes pulseUrgent{ 0%,100%{ opacity:1; } 50%{ opacity:.5; } }
+  .empty{ color:var(--muted); font-size:15px; text-align:center; padding:20px 0; }
+  .day-header{ font-family:'Fraunces',serif; color:var(--gold); font-size:16.5px; margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .day-header:first-child{ margin-top:0; }
+  .hist-ticket{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+  .hist-ticket .top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .hist-ticket .time{ font-size:13px; color:var(--muted); }
+
+  .lock{ position:fixed; inset:0; background:var(--bg-deep); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; animation: fadeIn .25s ease; }
+  .lock-box{ width:100%; max-width:300px; text-align:center; animation: popIn .3s cubic-bezier(.2,1,.3,1); }
+  .lock-box h2{ font-family:'Fraunces',serif; color:var(--cream); margin-bottom:6px; }
+  .lock-box p{ color:var(--muted); font-size:15px; margin-bottom:18px; }
+  .lock-box input{ width:100%; text-align:center; font-size:24px; letter-spacing:8px; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--cream); margin-bottom:12px; }
+  .lock-box button{ width:100%; padding:13px; border:none; border-radius:12px; background:var(--gold); color:var(--bg-deep); font-weight:700; font-size:16.5px; }
+  .lock-box .err{ color:var(--red); font-size:14.5px; margin-top:10px; min-height:16px; }
+  .cancel-btn{ margin-top:8px; width:100%; padding:9px; border:1px solid var(--red); background:transparent; color:var(--red); border-radius:10px; font-weight:600; font-size:15px; }
+  .header-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .install-btn{
+    flex-shrink:0; display:flex; align-items:center; gap:6px;
+    border:1px solid var(--gold); color:var(--gold); background:transparent;
+    padding:7px 12px; border-radius:999px; font-size:13.5px; font-weight:700;
+    white-space:nowrap;
+  }
+  .install-btn:active{ background:var(--gold); color:var(--bg-deep); }
+  .settings-links{ margin-top:8px; display:flex; gap:6px; }
+  .settings-links a{
+    font-size:12.5px; color:var(--muted); text-decoration:none;
+    border:1px solid var(--line); border-radius:999px; padding:4px 10px;
+    background:var(--panel);
+  }
+  .settings-links a:active{ background:var(--gold); color:var(--bg-deep); border-color:var(--gold); }
+
+
+  .table-card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
+  .repeat-request-card{
+    background:var(--panel); border:2px solid var(--gold); border-radius:14px; padding:14px; margin-bottom:14px;
+    animation: popIn .28s cubic-bezier(.2,1,.3,1);
+  }
+  .repeat-items{ margin:8px 0; }
+  .repeat-actions{ display:flex; gap:8px; margin-top:10px; }
+  .repeat-actions .serve-btn{ margin-top:0; flex:1; }
+  .reject-btn{
+    flex:1; padding:10px; border:1px solid var(--line); border-radius:10px;
+    background:transparent; color:var(--muted); font-weight:600;
+  }
+  .table-card.flash-target{ animation: flashTarget 2.2s ease; }
+  @keyframes flashTarget{
+    0%, 100%{ box-shadow:none; border-color:var(--line); }
+    15%, 45%, 75%{ box-shadow:0 0 0 3px var(--gold); border-color:var(--gold); }
+    30%, 60%, 90%{ box-shadow:none; border-color:var(--line); }
+  }
+  .table-card.flash-target{ animation: cardFlash 2.2s ease; }
+  @keyframes cardFlash{
+    0%, 100%{ box-shadow:none; border-color:var(--line); }
+    15%, 45%, 75%{ box-shadow:0 0 0 3px var(--gold); border-color:var(--gold); }
+    30%, 60%{ box-shadow:none; border-color:var(--line); }
+  }
+  .table-card .head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .table-card .head .num{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; color:var(--gold); }
+  .table-card .head .meta{ font-size:13.5px; color:var(--muted); }
+  .table-card .all-served{ font-size:15px; color:var(--green); padding:6px 0 10px; }
+  .close-table-btn{ margin-top:10px; width:100%; padding:12px; border:none; border-radius:10px; background:var(--gold); color:var(--bg-deep); font-weight:700; font-size:15.5px; }
+
+  .receipt{ position:fixed; inset:0; background:rgba(14,29,23,.92); z-index:95; display:none; align-items:center; justify-content:center; padding:20px; }
+  .receipt.open{ display:flex; animation: fadeIn .22s ease; }
+  .receipt-panel{ width:100%; max-width:400px; background:#fff; color:#111; border-radius:16px; max-height:85vh; display:flex; flex-direction:column; font-family:'Inter',monospace; animation: popIn .28s cubic-bezier(.2,1,.3,1); }
+  .receipt-body{ overflow-y:auto; padding:22px 24px; }
+  .receipt-body h2{ text-align:center; font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px; }
+  .receipt-body .sub{ text-align:center; font-size:14px; color:#666; margin-bottom:16px; }
+  .receipt-row{ display:flex; justify-content:space-between; font-size:14.5px; margin-bottom:4px; }
+  .receipt-hr{ border-top:1px dashed #bbb; margin:10px 0; }
+  .receipt-item{ display:flex; justify-content:space-between; font-size:15.5px; padding:4px 0; }
+  .receipt-item .rn{ flex:1; padding-right:8px; }
+  .receipt-total{ display:flex; justify-content:space-between; font-family:'Fraunces',serif; font-weight:700; font-size:19px; margin-top:10px; }
+  .receipt-actions{ display:flex; gap:8px; padding:16px 24px 8px; border-top:1px solid #ddd; }
+  .receipt-actions button{ flex:1; padding:12px 6px; border-radius:12px; border:none; font-weight:700; font-size:14.5px; }
+  .receipt-actions .btn-close{ background:#eee; color:#333; }
+  .receipt-actions .btn-download{ background:#e7e2d6; color:#1b1b1b; }
+  .receipt-actions .btn-print{ background:var(--gold); color:#1b1b1b; }
+  .receipt-share{ display:flex; gap:8px; padding:0 24px 20px; }
+  .receipt-share .share-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px 6px; border-radius:12px; font-weight:700; font-size:14.5px; text-decoration:none;
+    border:none; cursor:pointer; font-family:inherit;
+  }
+  .receipt-share .wa{ background:#eafaf0; color:#1b7a45; }
+  .receipt-share .tg{ background:#eaf6fd; color:#1478b0; }
+  .qr-popup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  .qr-popup.open{ opacity:1; pointer-events:auto; }
+  .qr-popup-card{ background:#fff; border-radius:20px; padding:28px; text-align:center; max-width:340px; width:88%; transform:scale(.8); transition:transform .25s ease; }
+  .qr-popup.open .qr-popup-card{ transform:scale(1); }
+  .qr-popup-card img{ width:140px; height:140px; border-radius:10px; margin-bottom:16px; }
+  .qr-popup-card .qr-note{ font-size:15px; color:#666; line-height:1.4; margin-bottom:18px; }
+  .qr-popup-card button{ width:100%; padding:12px; border:none; border-radius:10px; background:var(--gold); color:#1b1b1b; font-weight:700; }
+
+  .confirm-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:210; display:none; align-items:center; justify-content:center; padding:24px; }
+  .confirm-overlay.open{ display:flex; animation: fadeIn .2s ease; }
+  .confirm-box{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px 22px; max-width:300px; width:100%; text-align:center; animation: popIn .25s cubic-bezier(.2,1,.3,1); }
+  .confirm-brand{ font-family:'Fraunces',serif; color:var(--gold); font-size:14px; font-weight:700; margin-bottom:12px; letter-spacing:.06em; text-transform:uppercase; }
+  .confirm-question{ font-size:17.5px; font-weight:700; color:var(--cream); margin-bottom:6px; }
+  .confirm-sub{ font-size:14.5px; color:var(--muted); margin-bottom:20px; line-height:1.4; display:none; }
+  .confirm-input{
+    width:100%; box-sizing:border-box; padding:11px 12px; margin-bottom:20px;
+    border-radius:10px; border:1px solid var(--line); background:var(--bg-deep); color:var(--cream);
+    font-size:15.5px; font-family:inherit;
+  }
+  .confirm-input:focus{ outline:none; border-color:var(--gold); }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions button{ flex:1; padding:11px; border-radius:10px; font-weight:700; font-size:15.5px; border:none; }
+  .confirm-cancel{ background:var(--bg-deep); color:var(--cream); border:1px solid var(--line); }
+  .confirm-ok{ background:var(--gold); color:var(--bg-deep); }
+  .confirm-ok.danger{ background:var(--red); color:#fff; }
+  @media print{
+    body *{ visibility:hidden; }
+    .receipt-panel, .receipt-panel *{ visibility:visible; }
+    .receipt-panel{ position:fixed; inset:0; max-height:none; border-radius:0; }
+    .receipt-actions, .receipt-share{ display:none; }
+    .qr-popup{ display:none; }
+  }
+
+  .review{ position:fixed; inset:0; background:rgba(14,29,23,.92); z-index:90; display:none; align-items:flex-end; justify-content:center; }
+  .review.open{ display:flex; animation: fadeIn .22s ease; }
+  .review-panel{ width:100%; max-width:520px; background:var(--bg); border-radius:20px 20px 0 0; max-height:85vh; display:flex; flex-direction:column; animation: slideUpIn .28s cubic-bezier(.2,1,.3,1); }
+  .review-head{ padding:20px 20px 10px; border-bottom:1px solid var(--line); }
+  .review-head h2{ font-family:'Fraunces',serif; font-size:20px; margin:0 0 4px; }
+  .review-head p{ font-size:14.5px; color:var(--muted); margin:0; }
+  .review-body{ overflow-y:auto; padding:10px 20px; flex:1; }
+  .review-dest{ font-family:'Fraunces',serif; color:var(--gold); font-size:15.5px; margin:14px 0 4px; }
+  .review-line{ display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px dashed var(--line); font-size:16px; }
+  .review-line .n{ color:var(--muted); font-weight:600; margin-right:6px; }
+  .review-actions{ display:flex; gap:10px; padding:16px 20px; border-top:1px solid var(--line); }
+  .btn-outline{ flex:1; padding:13px; border-radius:12px; border:1px solid var(--line); background:transparent; color:var(--cream); font-weight:600; }
+  .btn-solid{ flex:2; padding:13px; border-radius:12px; border:none; background:var(--gold); color:var(--bg-deep); font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="lock" id="lock">
+  <div class="lock-box">
+    <h2>Garage · Официант</h2>
+    <p id="lockMsg">У вас нет доступа. Обратитесь к менеджеру, чтобы получить персональную QR-ссылку.</p>
+    <input id="unlockPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" style="display:none;">
+    <button id="unlockBtn" onclick="submitUnlockPin()" style="display:none;">Войти</button>
+    <button id="backToStaffBtn" onclick="location.href='/staff.html'" style="display:none; background:var(--panel); color:var(--cream); border:1px solid var(--line); margin-top:10px;">Вернуться к выбору</button>
+    <div class="err" id="pinErr"></div>
+  </div>
+</div>
+
+<div class="lock" id="nameLock" style="display:none">
+  <div class="lock-box">
+    <h2>Как вас зовут?</h2>
+    <p>Ваше имя увидят повар, бармен и менеджер</p>
+    <input id="nameInput" type="text" maxlength="30" placeholder="Иван" style="letter-spacing:normal; font-size:19px; text-align:left; padding:14px 16px;">
+    <button onclick="submitName()">Сохранить</button>
+  </div>
+</div>
+
+<div class="lock" id="iosLock" style="display:none">
+  <div class="lock-box">
+    <h2>Установка на экран</h2>
+    <p>Важно: в адресной строке должна быть ссылка с <b>?staff=</b> (из QR). Затем: «Поделиться» <span style="font-weight:700;">⬆️</span> → <span style="color:var(--gold);font-weight:600;">«На экран «Домой»»</span>. Старую иконку без доступа сначала удалите.</p>
+    <button onclick="document.getElementById('iosLock').style.display='none'">Понятно</button>
+  </div>
+</div>
+
+<div id="updateBanner" style="display:none; position:sticky; top:0; z-index:150; background:var(--gold); color:var(--bg-deep); padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:14.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1);">
+  <span>Доступна новая версия приложения</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button onclick="applyUpdate()" style="background:var(--bg-deep); color:var(--gold); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px;">Обновить</button>
+    <button onclick="dismissUpdateBanner()" style="background:transparent; border:none; color:var(--bg-deep); font-size:17.5px; font-weight:700; padding:0 4px;">×</button>
+  </div>
+</div>
+
+<div id="notifPermBanner" style="display:none; position:sticky; top:0; z-index:149; background:var(--red); color:#fff; padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:14.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1); flex-wrap:wrap;">
+  <span style="min-width:0; word-break:break-word; flex:1 1 auto;">Уведомления выключены — вы можете пропустить заказ</span>
+  <button onclick="requestNotifPermission()" style="background:#fff; color:var(--red); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px; flex-shrink:0;">Включить</button>
+</div>
+
+<header>
+  <div class="header-top">
+    <h1>Garage · Официант <span id="staffNameTag" onclick="openNamePrompt()" style="color:var(--gold); font-weight:600; cursor:pointer;"></span></h1>
+    <button class="install-btn" onclick="installApp()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/><path d="M12 7v5m-2.5-2.5L12 12l2.5-2.5" stroke-width="2"/></svg>
+      Иконка на телефон
+    </button>
+  </div>
+  <div class="conn off" id="conn">подключение…</div>
+  <div class="settings-links"><a href="#" onclick="openNamePrompt();return false;">Изменить имя</a><a href="#" onclick="openStaffPinPrompt();return false;">Изменить PIN</a><a href="staff.html" id="changeRoleLink" style="display:none;">Сменить роль</a><a href="#" onclick="logoutDevice();return false;">Выйти</a></div>
+</header>
+
+<main>
+  <div id="tables"></div>
+
+  <div class="tabs">
+    <button class="active" onclick="setMode('order')">Новый заказ</button>
+    <button onclick="setMode('board')">Столы</button>
+    <button onclick="setMode('history')">История</button>
+  </div>
+
+  <div id="orderView">
+    <div id="guestHistoryBanner" style="display:none;"></div>
+    <div class="dest-tabs" id="destTabs"></div>
+    <div class="chip-row" id="catChips"></div>
+    <div id="catList"></div>
+  </div>
+  <div id="boardView" style="display:none"></div>
+  <div id="historyView" style="display:none"></div>
+</main>
+
+<div class="cart-bar hidden" id="cartBar">
+  <span id="cartSummary"></span>
+  <button class="cart-bar-btn" onclick="openReview()">Создать заказ →</button>
+</div>
+
+<div class="review" id="review">
+  <div class="review-panel">
+    <div class="review-head">
+      <h2>Стол <span id="reviewTable"></span> — проверьте заказ</h2>
+      <p>Зачитайте позиции гостю, прежде чем отправить на кухню и бар</p>
+    </div>
+    <div class="review-body" id="reviewBody"></div>
+    <div class="review-actions">
+      <button class="btn-outline" onclick="closeReview()">Изменить</button>
+      <button class="btn-solid" onclick="submitOrder()">Готово — отправить</button>
+    </div>
+  </div>
+</div>
+
+<div class="receipt" id="receipt">
+  <div class="receipt-panel">
+    <div class="receipt-body" id="receiptBody"></div>
+    <div class="receipt-actions">
+      <button class="btn-close" onclick="closeReceipt()">Закрыть</button>
+      <button class="btn-download" onclick="showReceiptQr('download')">Скачать</button>
+      <button class="btn-print" onclick="window.print()">Печать</button>
+    </div>
+    <div class="receipt-share">
+      <button class="share-btn wa" onclick="showReceiptQr('whatsapp')">
+        <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M16 3C9.1 3 3.5 8.6 3.5 15.5c0 2.5.7 4.8 1.9 6.8L3 29l6.9-2.3c1.9 1 4.1 1.6 6.1 1.6 6.9 0 12.5-5.6 12.5-12.5S22.9 3 16 3z" fill="#25D366"/><path d="M22.4 19.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2s-.8 1.1-1 1.3-.4.2-.7.1c-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-2-1.8-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.5-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6s-.7-1.7-1-2.3c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.2.2 2 3.1 4.9 4.2 2.8 1.1 2.8.8 3.3.7.5-.1 1.6-.7 1.8-1.3.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.4z" fill="#fff"/></svg>
+        WhatsApp
+      </button>
+      <button class="share-btn tg" onclick="showReceiptQr('telegram')">
+        <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" fill="#29A9EA"/><path d="M8.5 15.8l13-5c.6-.2 1.2.2.9.9l-2.2 10.4c-.2.8-.7.9-1.3.6l-3.6-2.7-1.7 1.6c-.2.2-.4.3-.7.3l.2-3.6 6.6-6c.3-.2-.1-.4-.4-.2l-8.1 5.1-3.5-1.1c-.8-.2-.8-.8.1-1.2z" fill="#fff"/></svg>
+        Telegram
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="qr-popup" id="qrPopup" onclick="if(event.target===this) closeQrPopup()">
+  <div class="qr-popup-card">
+    <img id="qrPopupImg" src="">
+    <div class="qr-note" id="qrPopupNote"></div>
+    <button onclick="closeQrPopup()">Закрыть</button>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-brand">Garage Music Bar</div>
+    <div class="confirm-question" id="confirmQuestion"></div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <input type="text" class="confirm-input" id="confirmInput" style="display:none;">
+    <div class="confirm-actions">
+      <button class="confirm-cancel" id="confirmCancelBtn" onclick="confirmNo()">Отмена</button>
+      <button class="confirm-ok" id="confirmOkBtn" onclick="confirmYes()">Да</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- EDIT THIS after you deploy the Worker ----
+const WS_URL = "wss://api.restorun.kuatov.kz/ws?venue=garage-music-bar";
+
+let MENU = { kitchen: [], bar: [] }; // populated from the server's shared menu (see state handler)
+
+const ROLE = "waiter";
+let socket = null;
+let currentTable = null;
+let targetTable = null; // set once from a notification tap, to scroll/flash the relevant table card
+{
+  const params = new URLSearchParams(location.search);
+  if(params.get('table')) targetTable = parseInt(params.get('table'), 10);
+}
+let mode = "order";
+if(new URLSearchParams(location.search).get('view') === 'board'){
+  mode = 'board';
+  // Toggle the DOM right here too, defensively — if anything later in this
+  // script throws before the normal setMode('board') call runs, the board
+  // tab (and the target-table scroll it drives) must still end up visible.
+  const ov = document.getElementById('orderView'); if(ov) ov.style.display = 'none';
+  const bv = document.getElementById('boardView'); if(bv) bv.style.display = '';
+  document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('active', i===1));
+}
+let activeDest = "kitchen";
+let openCat = null;
+let cart = {}; // key: "kitchen|Название" -> {name, qty, dest, price}
+let allOrders = [];
+let allHistory = [];
+let openTables = {};
+let closedTables = [];
+let repeatRequests = [];
+let callingTables = {};
+let billRequestedTables = {};
+let returningGuestTables = {};
+let rooms = [{id:"default", name:"Зал", tableCount:20}];
+let cancelRequests = [];
+let staffId = null;
+let staffName = "";
+let unavailable = {};
+let vapidPublicKey = null;
+let pushSetupDone = false;
+
+// --- staff-token auth (QR link) with legacy PIN fallback ---
+(function initStaffId(){
+  const url = new URL(window.location.href);
+  const fromUrl = url.searchParams.get('staff');
+  if(fromUrl){
+    localStorage.setItem('garage_staff_id_'+ROLE, fromUrl);
+  }
+  staffId = localStorage.getItem('garage_staff_id_'+ROLE);
+  // iOS's native "Add to Home Screen" (Safari's own Share sheet) bookmarks
+  // whatever URL is in the address bar at that exact moment — it does NOT
+  // read the manifest's start_url, and it can be triggered by the person at
+  // any time, not just via our "Иконка на телефон" button. So the staff id
+  // must stay visible in the address bar for the whole session, not just
+  // briefly — otherwise a Home Screen icon can end up pointing at a bare,
+  // unrecognized URL.
+  if(staffId && !url.searchParams.get('staff')){
+    url.searchParams.set('staff', staffId);
+    window.history.replaceState({}, '', url.pathname + url.search);
+  }
+  // Also keep the manifest's start_url in sync, for the platforms that DO
+  // read it (Android/Chrome's real install prompt).
+  if(staffId){
+    const link = document.getElementById('manifestLink');
+    if(link) link.href = '/manifest-waiter.json?staff=' + encodeURIComponent(staffId);
+  }
+})();
+
+function getStaffPin(){ return localStorage.getItem('garage_staff_pin_'+ROLE); }
+function setStaffPin(p){ localStorage.setItem('garage_staff_pin_'+ROLE, p); }
+function clearStaffPin(){ localStorage.removeItem('garage_staff_pin_'+ROLE); }
+
+let triedDefaultPin = false;
+let unknownStaffRetries = 0;
+let locked = false;
+
+function closeAnyOpenOverlays(){
+  const qrPopup = document.getElementById('qrPopup');
+  if(qrPopup) qrPopup.classList.remove('open');
+  const receipt = document.getElementById('receipt');
+  if(receipt) receipt.classList.remove('open');
+  const review = document.getElementById('review');
+  if(review) review.classList.remove('open');
+}
+function showLock(){
+  closeAnyOpenOverlays();
+  const standalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
+  document.getElementById('lockMsg').textContent = standalone
+    ? "Иконка открылась без персональной ссылки. Удалите её с экрана «Домой», откройте свой QR в Safari и снова: Поделиться → На экран «Домой»."
+    : "У вас нет доступа. Обратитесь к менеджеру, чтобы получить персональную QR-ссылку.";
+  document.getElementById('unlockPinInput').style.display = 'none';
+  document.getElementById('unlockBtn').style.display = 'none';
+  document.getElementById('backToStaffBtn').style.display = 'block';
+  document.getElementById('lock').style.display = 'flex';
+}
+function showUnlockScreen(err){
+  closeAnyOpenOverlays();
+  locked = true;
+  document.getElementById('lockMsg').textContent = "Сессия заперта. Введите свой PIN, чтобы продолжить работу.";
+  document.getElementById('unlockPinInput').style.display = 'block';
+  document.getElementById('unlockBtn').style.display = 'block';
+  document.getElementById('backToStaffBtn').style.display = 'none';
+  document.getElementById('pinErr').textContent = err || "";
+  document.getElementById('unlockPinInput').value = "";
+  document.getElementById('lock').style.display = 'flex';
+}
+function hideLock(){ document.getElementById('lock').style.display = 'none'; }
+function submitUnlockPin(){
+  const p = document.getElementById('unlockPinInput').value.trim();
+  if(!/^\d{4,6}$/.test(p)) return;
+  locked = false;
+  setStaffPin(p);
+  document.getElementById('pinErr').textContent = "";
+  connect();
+}
+
+function showNameLock(){
+  document.getElementById('nameInput').value = staffName || "";
+  document.getElementById('nameLock').style.display = 'flex';
+}
+function hideNameLock(){ document.getElementById('nameLock').style.display = 'none'; }
+function openNamePrompt(){ showNameLock(); }
+function submitName(){
+  const name = document.getElementById('nameInput').value.trim();
+  if(!name) return;
+  staffName = name;
+  socket.send(JSON.stringify({type:"set_staff_name", staffId, name}));
+  hideNameLock();
+  updateStaffNameTag();
+}
+function updateStaffNameTag(){
+  document.getElementById('staffNameTag').textContent = staffName ? "— " + staffName : "— указать имя";
+}
+
+function openStaffPinPrompt(){
+  showPrompt("Новый PIN (4-6 цифр) — понадобится после каждого выхода:", "", (p1) => {
+    if(p1 === null) return;
+    const clean = p1.trim();
+    if(!/^\d{4,6}$/.test(clean)){ showAlert("PIN должен состоять из 4-6 цифр"); return; }
+    socket.send(JSON.stringify({type:"set_staff_pin", staffId, newPin: clean}));
+    setStaffPin(clean);
+  });
+}
+
+function connect(){
+  if(!staffId){ showLock(); return; }
+  let pin = getStaffPin();
+  let usedDefaultGuess = false;
+  if(!pin){
+    if(!triedDefaultPin){
+      // Fresh QR scan, never locked before — try the default once, silently.
+      triedDefaultPin = true;
+      usedDefaultGuess = true;
+      pin = "1111";
+    } else {
+      showUnlockScreen();
+      return;
+    }
+  }
+  socket = new WebSocket(WS_URL);
+  socket.onopen = () => {
+    document.getElementById('conn').textContent = "в сети"; document.getElementById('conn').className = "conn on";
+    socket.send(JSON.stringify({type:"hello", role:ROLE, staffId, pin}));
+  };
+  socket.onclose = () => { document.getElementById('conn').textContent = "нет связи — переподключение…"; document.getElementById('conn').className = "conn off"; if(!locked) setTimeout(connect, 2000); };
+  socket.onerror = () => socket.close();
+  socket.onmessage = (evt) => {
+    const msg = JSON.parse(evt.data);
+    if(msg.type === "auth_ok"){ hideLock(); setStaffPin(pin); unknownStaffRetries = 0; }
+    if(msg.type === "auth_error"){
+      if(msg.reason === "unknown_staff"){
+        if(unknownStaffRetries < 1){
+          // Could be a one-off hiccup (e.g. the backend waking up from idle) —
+          // retry once before treating this as a real deregistration and
+          // wiping a device binding that might still be perfectly valid.
+          unknownStaffRetries++;
+          setTimeout(connect, 1200);
+          return;
+        }
+        localStorage.removeItem('garage_staff_id_'+ROLE);
+        localStorage.removeItem('garage_staff_name_'+ROLE);
+        clearStaffPin();
+        staffId = null;
+        document.getElementById('lockMsg').textContent = "Вы не являетесь официантом. Обратитесь к менеджеру, чтобы вас добавили.";
+        document.getElementById('unlockPinInput').style.display = 'none';
+        document.getElementById('unlockBtn').style.display = 'none';
+        document.getElementById('backToStaffBtn').style.display = 'block';
+        document.getElementById('lock').style.display = 'flex';
+      } else if(msg.reason === "wrong_pin"){
+        clearStaffPin();
+        showUnlockScreen(usedDefaultGuess ? "" : "Неверный PIN");
+      } else {
+        showLock();
+      }
+    }
+    if(msg.type === "staff_pin_changed"){ showAlert("PIN обновлён."); }
+    if(msg.type === "staff_pin_change_error"){ showAlert("Не удалось сменить PIN — используйте 4-6 цифр."); }
+    if(msg.type === "state"){
+      allOrders = msg.orders;
+      allHistory = msg.history || [];
+      closedTables = msg.closedTables || [];
+      repeatRequests = msg.repeatRequests || [];
+      openTables = msg.openTables || {};
+      callingTables = msg.callingTables || {};
+      billRequestedTables = msg.billRequestedTables || {};
+      returningGuestTables = msg.returningGuestTables || {};
+      rooms = msg.rooms || rooms;
+      cancelRequests = msg.cancelRequests || [];
+      vapidPublicKey = msg.vapidPublicKey || vapidPublicKey;
+      if(vapidPublicKey) setupPush();
+      unavailable = msg.unavailable || {};
+      if(msg.menu) MENU = msg.menu;
+      if(targetTable !== null && mode === 'order' && currentTable === null){
+        currentTable = targetTable;
+        targetTable = null;
+        requestGuestHistory(currentTable);
+        if(callingTables[currentTable] || billRequestedTables[currentTable] || returningGuestTables[currentTable]){
+          delete callingTables[currentTable];
+          delete billRequestedTables[currentTable];
+          delete returningGuestTables[currentTable];
+          socket.send(JSON.stringify({type:"acknowledge_table", table: currentTable}));
+        }
+      }
+      if(staffId){
+        const me = (msg.staff || []).find(s => s.id === staffId);
+        if(me){
+          staffName = me.name || "";
+          updateStaffNameTag();
+          if(staffName) localStorage.setItem('garage_staff_name_'+ROLE, staffName);
+          if(!staffName) showNameLock(); else hideNameLock();
+        }
+      }
+      renderTables();
+      renderChips();
+      renderMenu();
+      renderBoard();
+      if(mode === 'history') renderHistory();
+    }
+    if(msg.type === "items_removed"){
+      showAlert("Эти позиции только что стали недоступны и не попали в заказ: " + msg.names.join(", "));
+    }
+    if(msg.type === "notify"){ alertReady(msg); }
+    if(msg.type === "push_registered"){
+      const c = document.getElementById('conn');
+      if(c) c.textContent = "в сети · push OK (" + msg.total + ")";
+    }
+    if(msg.type === "table_closed"){ showReceipt(msg.receipt); }
+    if(msg.type === "guest_history_result" && msg.table === currentTable){ renderGuestHistoryBanner(msg.history); }
+    if(msg.type === "close_error"){
+      if(msg.reason === "pending_items") showAlert("У стола ещё есть неподанные позиции — сначала выдайте их гостю.");
+      else showAlert("Не удалось закрыть стол.");
+    }
+  };
+}
+
+function alertReady(msg){
+  if(msg.kind === "quick_request"){
+    if(navigator.vibrate) navigator.vibrate([150,60,150,60,150]);
+    const labels = { cutlery:"просит приборы", napkins:"просит салфетки", toothpicks:"просит зубочистки", salt_pepper:"просит соль/перец", order_problem:"сообщает о проблеме с заказом" };
+    const text = "Стол " + tableLabel(msg.table) + " " + (labels[msg.what] || "что-то просит");
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(text);
+    } else {
+      showAlert(text);
+    }
+    setMode('board');
+    return;
+  }
+  if(msg.kind === "repeat_request"){
+    if(navigator.vibrate) navigator.vibrate([200,80,200,80,200]);
+    const text = "Стол " + tableLabel(msg.table) + " хочет повторить заказ — проверьте и подтвердите";
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(text);
+    } else {
+      showAlert(text);
+    }
+    setMode('board');
+    return;
+  }
+  if(msg.kind === "still_not_served"){
+    if(navigator.vibrate) navigator.vibrate([250,100,250,100,250]);
+    const text = "Стол " + tableLabel(msg.table) + " — заказ готов уже 2 минуты, до сих пор не подан!";
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(text);
+    } else {
+      showAlert(text);
+    }
+    setMode('board');
+    return;
+  }
+  if(msg.kind === "still_no_bill"){
+    if(navigator.vibrate) navigator.vibrate([250,100,250,100,250]);
+    const text = "Стол " + tableLabel(msg.table) + " — гость уже 2 минуты ждёт счёт!";
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(text);
+    } else {
+      showAlert(text);
+    }
+    setMode('board');
+    return;
+  }
+  if(msg.kind === "call_waiter" || msg.kind === "request_bill"){
+    if(navigator.vibrate) navigator.vibrate([150,60,150,60,150]);
+    const text = msg.kind === "call_waiter" ? "Стол " + tableLabel(msg.table) + " зовёт официанта" : "Стол " + tableLabel(msg.table) + " просит счёт";
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(text);
+    } else {
+      showAlert(text);
+    }
+    setMode('board');
+    return;
+  }
+  if(msg.kind === "cancel_approved" || msg.kind === "cancel_rejected" || msg.kind === "cancel_already_resolved"){
+    if(navigator.vibrate) navigator.vibrate([150,60,150]);
+    let text;
+    if(msg.kind === "cancel_approved") text = "Менеджер подтвердил отмену — стол " + tableLabel(msg.table);
+    else if(msg.kind === "cancel_rejected") text = "Менеджер отклонил отмену — стол " + tableLabel(msg.table) + ", заказ остаётся в работе";
+    else text = "Стол " + tableLabel(msg.table) + " — заказ уже выдан гостю, отменять нечего";
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(text);
+    } else {
+      showAlert(text);
+    }
+    setMode('board');
+    return;
+  }
+  if(navigator.vibrate) navigator.vibrate([200,80,200]);
+  if("Notification" in window && Notification.permission === "granted"){
+    new Notification("Стол " + msg.table + " — готово (" + (msg.part==='kitchen'?'кухня':'бар') + ")");
+  }
+  setMode('board');
+}
+
+function renderTables(){
+  const el = document.getElementById('tables');
+  el.innerHTML = "";
+  let offset = 0;
+  rooms.forEach(room => {
+    const group = document.createElement('div');
+    group.className = 'room-group';
+    if(rooms.length > 1){
+      const label = document.createElement('div');
+      label.className = 'room-label';
+      label.textContent = room.name;
+      group.appendChild(label);
+    }
+    const row = document.createElement('div');
+    row.className = 'table-row';
+    for(let local=1; local<=room.tableCount; local++){
+      const globalNum = offset + local;
+      const b = document.createElement('button');
+      b.textContent = local;
+      b.onclick = () => {
+        currentTable = globalNum;
+        renderTables();
+        updateCartBar();
+        requestGuestHistory(globalNum);
+        if(callingTables[globalNum] || billRequestedTables[globalNum] || returningGuestTables[globalNum]){
+          delete callingTables[globalNum];
+          delete billRequestedTables[globalNum];
+          delete returningGuestTables[globalNum];
+          socket.send(JSON.stringify({type:"acknowledge_table", table: globalNum}));
+        }
+      };
+      let cls = [];
+      if(currentTable===globalNum) cls.push('active');
+      if(openTables[globalNum]) cls.push('occupied');
+      if(callingTables[globalNum]) cls.push('calling');
+      else if(billRequestedTables[globalNum]) cls.push('bill-requested');
+      else if(returningGuestTables[globalNum]) cls.push('returning-guest');
+      b.className = cls.join(' ');
+      row.appendChild(b);
+    }
+    group.appendChild(row);
+    el.appendChild(group);
+    offset += room.tableCount;
+  });
+}
+
+function tableLabel(globalNum){
+  if(rooms.length <= 1) return String(globalNum);
+  let offset = 0;
+  for(const room of rooms){
+    if(globalNum <= offset + room.tableCount) return `${room.name} · ${globalNum - offset}`;
+    offset += room.tableCount;
+  }
+  return String(globalNum);
+}
+
+function setMode(m){
+  mode = m;
+  const idx = {order:0, board:1, history:2}[m];
+  document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('active', i===idx));
+  document.getElementById('orderView').style.display = m==='order' ? '' : 'none';
+  document.getElementById('boardView').style.display = m==='board' ? '' : 'none';
+  document.getElementById('historyView').style.display = m==='history' ? '' : 'none';
+  if(m==='board') renderBoard();
+  if(m==='history') renderHistory();
+}
+
+function catCount(dest, cat){
+  return cat.items.reduce((s,item) => {
+    const name = item.name.ru;
+    if(item.price2){
+      const prices = [item.price, item.price2, item.price3].filter(Boolean);
+      return s + prices.reduce((s2,p) => s2 + (cart[dest+"|"+name+"|"+p] ? cart[dest+"|"+name+"|"+p].qty : 0), 0);
+    }
+    return s + (cart[dest+"|"+name] ? cart[dest+"|"+name].qty : 0);
+  }, 0);
+}
+
+function renderDestTabs(){
+  const el = document.getElementById('destTabs');
+  el.innerHTML = `
+    <button class="${activeDest==='kitchen'?'active':''}" onclick="setDest('kitchen')">Кухня</button>
+    <button class="${activeDest==='bar'?'active':''}" onclick="setDest('bar')">Бар</button>`;
+}
+
+function setDest(dest){
+  activeDest = dest;
+  openCat = null;
+  renderChips();
+  renderDestTabs();
+  renderMenu();
+}
+
+function renderChips(){
+  const el = document.getElementById('catChips');
+  el.innerHTML = "";
+  MENU[activeDest].forEach(cat => {
+    const title = cat.title.ru;
+    const b = document.createElement('button');
+    const n = catCount(activeDest, cat);
+    b.textContent = title + (n>0 ? ` (${n})` : '');
+    b.className = (openCat===title ? 'active' : (n>0 ? 'has-items' : ''));
+    b.onclick = () => selectCategory(title);
+    el.appendChild(b);
+  });
+}
+
+function selectCategory(title){
+  openCat = (openCat===title) ? null : title;
+  renderChips();
+  renderMenu();
+  if(openCat){
+    setTimeout(() => {
+      const node = document.getElementById('acc-'+cssSafe(title));
+      if(node){
+        const header = document.querySelector('header');
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+        const top = node.getBoundingClientRect().top + window.scrollY - headerHeight - 10;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 30);
+  }
+}
+
+function renderMenu(){
+  const el = document.getElementById('catList');
+  let html = "";
+  MENU[activeDest].forEach(cat => {
+    const title = cat.title.ru;
+    const isOpen = openCat === title;
+    const n = catCount(activeDest, cat);
+    html += `<div class="accordion-cat" id="acc-${cssSafe(title)}">
+      <div class="accordion-head ${isOpen?'open':''}" onclick="selectCategory('${title.replace(/'/g,"\\'")}')">
+        <h3>${title} ${n>0?`<span class="count">${n}</span>`:''}</h3>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="accordion-body ${isOpen?'open':''}">`;
+    cat.items.forEach(it => {
+      const name = it.name.ru;
+      const key = activeDest+"|"+name;
+      const unavail = unavailable[key];
+      if(unavail){
+        html += `<div class="item disabled" onclick="showUnavailReason('${name.replace(/'/g,"\\'")}','${(unavail.comment||'').replace(/'/g,"\\'")}')">
+          <div class="name">${name} <span class="unavail-tag">нет в наличии</span></div>
+          <div class="price">${it.price}</div>
+        </div>`;
+        return;
+      }
+      if(it.price2){
+        // Two (or three) pour/size variants of the same dish — each needs
+        // its own price and its own quantity, tracked as separate cart lines.
+        const variants = [it.price, it.price2, it.price3].filter(Boolean);
+        html += `<div class="item item-variants"><div class="name">${name}</div>`;
+        variants.forEach(price => {
+          const vKey = activeDest+"|"+name+"|"+price;
+          const qty = cart[vKey] ? cart[vKey].qty : 0;
+          const note = cart[vKey] ? cart[vKey].note : "";
+          html += `<div class="variant-row">
+            <div class="price">${price}</div>
+            <button class="note-btn ${note?'has-note':''}" onclick="editNote('${activeDest}','${name.replace(/'/g,"\\'")}','${price}','${price}')" title="Комментарий">💬</button>
+            <div class="qty">
+              <button onclick="changeQty('${activeDest}','${name.replace(/'/g,"\\'")}',-1,'${price}','${price}')">−</button>
+              <span id="qty-${activeDest}-${cssSafe(name)}-${cssSafe(price)}">${qty}</span>
+              <button onclick="changeQty('${activeDest}','${name.replace(/'/g,"\\'")}',1,'${price}','${price}')">+</button>
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+        return;
+      }
+      const price = it.price;
+      const qty = cart[key] ? cart[key].qty : 0;
+      const note = cart[key] ? cart[key].note : "";
+      html += `<div class="item">
+        <div class="name">${name}</div>
+        <div class="price">${price}</div>
+        <button class="note-btn ${note?'has-note':''}" onclick="editNote('${activeDest}','${name.replace(/'/g,"\\'")}','${price}')" title="Комментарий">💬</button>
+        <div class="qty">
+          <button onclick="changeQty('${activeDest}','${name.replace(/'/g,"\\'")}',-1)">−</button>
+          <span id="qty-${activeDest}-${cssSafe(name)}">${qty}</span>
+          <button onclick="changeQty('${activeDest}','${name.replace(/'/g,"\\'")}',1,'${price}')">+</button>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+}
+function cssSafe(s){ return s.replace(/[^a-zA-Zа-яА-Я0-9]/g,'_'); }
+
+function changeQty(dest, name, delta, price, variantKey){
+  const key = dest+"|"+name+(variantKey?"|"+variantKey:"");
+  const current = cart[key] ? cart[key].qty : 0;
+  const existingPrice = cart[key] ? cart[key].price : price;
+  const existingNote = cart[key] ? cart[key].note : "";
+  const next = Math.max(0, current + delta);
+  if(next===0) delete cart[key];
+  else cart[key] = { name, qty: next, dest, price: existingPrice, note: existingNote };
+  const span = document.getElementById('qty-'+dest+'-'+cssSafe(name)+(variantKey?'-'+cssSafe(variantKey):''));
+  if(span) span.textContent = next;
+  renderChips();
+  updateCartBar();
+}
+
+function showUnavailReason(name, comment){
+  showAlert(name + " временно недоступно" + (comment ? ":\n" + comment : "."));
+}
+
+function editNote(dest, name, price, variantKey){
+  const key = dest+"|"+name+(variantKey?"|"+variantKey:"");
+  if(!cart[key]){ showAlert("Сначала добавьте позицию (нажмите +), потом можно оставить комментарий."); return; }
+  const current = cart[key].note || "";
+  showPrompt("Комментарий к позиции «" + name + "» (например: без перца, без молока):", current, (note) => {
+    if(note === null) return;
+    cart[key].note = note.trim();
+    renderMenu();
+  });
+}
+
+function updateCartBar(){
+  const keys = Object.keys(cart);
+  const bar = document.getElementById('cartBar');
+  if(keys.length===0 || !currentTable){ bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  const totalItems = keys.reduce((s,k)=>s+cart[k].qty,0);
+  document.getElementById('cartSummary').textContent = `Стол ${tableLabel(currentTable)} · ${totalItems} поз.`;
+}
+
+function openReview(){
+  if(!currentTable){ showAlert("Сначала выберите стол"); return; }
+  document.getElementById('reviewTable').textContent = tableLabel(currentTable);
+  const body = document.getElementById('reviewBody');
+  let html = "";
+  ["kitchen","bar"].forEach(dest => {
+    const lines = Object.values(cart).filter(i=>i.dest===dest);
+    if(lines.length===0) return;
+    html += `<div class="review-dest">${dest==='kitchen'?'Кухня':'Бар'}</div>`;
+    lines.forEach(i => html += `<div class="review-line"><span><span class="n">${i.qty}×</span>${i.name}${i.note?` <em style="color:var(--gold);font-style:normal;font-size:14px;">— ${i.note}</em>`:''}</span></div>`);
+  });
+  body.innerHTML = html;
+  document.getElementById('review').classList.add('open');
+}
+function closeReview(){
+  document.getElementById('review').classList.remove('open');
+}
+
+function submitOrder(){
+  if(!currentTable){ showAlert("Сначала выберите стол"); return; }
+  const kitchenItems = Object.values(cart).filter(i=>i.dest==='kitchen').map(i=>({name:i.name, qty:i.qty, price:i.price, note:i.note||''}));
+  const barItems = Object.values(cart).filter(i=>i.dest==='bar').map(i=>({name:i.name, qty:i.qty, price:i.price, note:i.note||''}));
+  if(kitchenItems.length===0 && barItems.length===0) return;
+  const payload = {type:"new_order", table: currentTable, kitchenItems, barItems};
+  socket.send(JSON.stringify(payload));
+  cart = {};
+  renderChips();
+  renderMenu();
+  updateCartBar();
+  closeReview();
+  setMode('board');
+}
+
+function tickCountdowns(){
+  document.querySelectorAll('.countdown[data-ready-at]').forEach(el => {
+    const readyAt = parseInt(el.dataset.readyAt, 10);
+    const remain = readyAt + 2*60*1000 - Date.now();
+    if(remain <= 0){
+      el.textContent = 'Пора подать!';
+      el.classList.add('urgent');
+    } else {
+      const m = Math.floor(remain/60000);
+      const s = Math.floor((remain%60000)/1000);
+      el.textContent = 'Осталось: ' + m + ':' + String(s).padStart(2,'0');
+      el.classList.toggle('urgent', remain < 30000);
+    }
+  });
+}
+setInterval(tickCountdowns, 1000);
+
+function renderBoard(){
+  const el = document.getElementById('boardView');
+  let repeatHtml = "";
+  repeatRequests.forEach(r => {
+    repeatHtml += `<div class="repeat-request-card">
+      <div class="head"><span class="num">🔁 Стол ${tableLabel(r.table)} — повтор заказа</span></div>
+      <div class="repeat-items">${r.items.map(i => `<div class="line">${i.qty} × ${i.name} <small>(${i.dest==='kitchen'?'кухня':'бар'})</small></div>`).join('')}</div>
+      <div class="repeat-actions">
+        <button class="serve-btn" onclick="confirmRepeatRequest('${r.id}')">Подтвердить</button>
+        <button class="reject-btn" onclick="rejectRepeatRequest('${r.id}')">Отклонить</button>
+      </div>
+    </div>`;
+  });
+  const tableNums = Object.keys(openTables).map(Number).sort((a,b)=>a-b);
+  if(tableNums.length===0){ el.innerHTML = repeatHtml + `<div class="empty">Открытых столов нет</div>`; return; }
+  let html = repeatHtml;
+  tableNums.forEach(t => {
+    const session = openTables[t];
+    const ordersForTable = allOrders.filter(o => o.table === t).sort((a,b)=>a.createdAt-b.createdAt);
+    html += `<div class="table-card" id="table-card-${t}">
+      <div class="head"><span class="num">Стол ${tableLabel(t)}</span><span class="meta">открыт ${timeAgo(session.openedAt)}</span></div>`;
+    if(ordersForTable.length===0){
+      html += `<div class="all-served">Все поданные позиции выданы гостю ✓</div>`;
+    } else {
+      ordersForTable.forEach(o => {
+        const kReady = o.kitchenStatus==='ready' || o.kitchenStatus==='none';
+        const bReady = o.barStatus==='ready' || o.barStatus==='none';
+        html += `<div class="ticket">`;
+        if(o.kitchenItems.length){
+          html += `<div class="line"><span class="badge ${o.kitchenStatus==='ready'?'ready':'pending'}">${o.kitchenStatus==='ready'?'Кухня готова':(o.kitchenStatus==='accepted'?'Кухня готовит':'Кухня: в очереди')}</span></div>`;
+          o.kitchenItems.forEach(i=> html += `<div class="line">${i.name} <small>× ${i.qty}</small>${i.note?` <em style="color:var(--gold);font-style:normal;">— ${i.note}</em>`:''}</div>`);
+        }
+        if(o.barItems.length){
+          html += `<div class="line" style="margin-top:6px;"><span class="badge ${o.barStatus==='ready'?'ready':'pending'}">${o.barStatus==='ready'?'Бар готов':(o.barStatus==='accepted'?'Бар готовит':'Бар: в очереди')}</span></div>`;
+          o.barItems.forEach(i=> html += `<div class="line">${i.name} <small>× ${i.qty}</small>${i.note?` <em style="color:var(--gold);font-style:normal;">— ${i.note}</em>`:''}</div>`);
+        }
+        if(kReady && bReady){
+          let countdownHtml = '';
+          if(o.waiterId === staffId && o.fullyReadyAt){
+            countdownHtml = `<div class="countdown" data-ready-at="${o.fullyReadyAt}"></div>`;
+          }
+          html += countdownHtml + `<button class="serve-btn" onclick="serveOrder('${o.id}')">Выдано гостю</button>`;
+        } else {
+          const pending = cancelRequests.find(r => r.orderId === o.id);
+          if(pending){
+            html += `<button class="cancel-btn" disabled style="opacity:.6;cursor:not-allowed;">Ожидает решения менеджера…</button>`;
+          } else {
+            html += `<button class="cancel-btn" onclick="cancelOrder('${o.id}')">Запросить отмену</button>`;
+          }
+        }
+        html += `</div>`;
+      });
+    }
+    html += `<button class="close-table-btn" onclick="closeTable(${t})">Закрыть стол — сформировать чек</button>`;
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+  tickCountdowns();
+  if(targetTable !== null){
+    const card = document.getElementById('table-card-' + targetTable);
+    if(card){
+      card.scrollIntoView({behavior:'smooth', block:'center'});
+      card.classList.add('flash-target');
+      setTimeout(() => card.classList.remove('flash-target'), 2200);
+    }
+    targetTable = null;
+  }
+}
+function timeAgo(ts){
+  const m = Math.floor((Date.now()-ts)/60000);
+  return m<1 ? "только что" : m+" мин назад";
+}
+
+function dayLabel(ts){
+  const d = new Date(ts);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate()-1);
+  if(d.toDateString()===today.toDateString()) return "Сегодня";
+  if(d.toDateString()===yesterday.toDateString()) return "Вчера";
+  return d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+}
+
+function renderHistory(){
+  const el = document.getElementById('historyView');
+  const mine = closedTables.filter(r => r.closedBy === staffName).sort((a,b)=>b.closedAt-a.closedAt);
+  if(mine.length===0){ el.innerHTML = `<div class="empty">Пока нет закрытых столов</div>`; return; }
+  let html = "";
+  let lastDay = null;
+  mine.forEach(r => {
+    const day = dayLabel(r.closedAt);
+    if(day !== lastDay){ html += `<div class="day-header">${day}</div>`; lastDay = day; }
+    html += `<div class="hist-ticket" onclick="showReceiptById('${r.id}')" style="cursor:pointer;">
+      <div class="top"><span class="table-badge">Стол ${tableLabel(r.table)}</span><span class="time">${new Date(r.closedAt).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="line" style="display:flex; justify-content:space-between;"><span>${r.items.length} ${r.items.length===1?'позиция':'позиций'}</span><span style="color:var(--gold); font-weight:700;">${r.total.toLocaleString('ru-RU')} тг</span></div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function confirmRepeatRequest(id){
+  socket.send(JSON.stringify({type:"confirm_repeat_request", requestId:id}));
+}
+function rejectRepeatRequest(id){
+  showConfirm("Отклонить повторный заказ?", "Гостю ничего не отправится.", () => {
+    socket.send(JSON.stringify({type:"reject_repeat_request", requestId:id}));
+  });
+}
+
+function closeTable(t){
+  showConfirm(`Закрыть стол ${tableLabel(t)}?`, "Сформируется чек.", () => {
+    socket.send(JSON.stringify({type:"close_table", table:t}));
+  });
+}
+
+let currentReceipt = null;
+
+function showReceiptById(id){
+  const r = closedTables.find(x => x.id === id);
+  if(r) showReceipt(r);
+}
+
+function showReceipt(r){
+  currentReceipt = r;
+  const body = document.getElementById('receiptBody');
+  let html = `<h2>Garage Music Bar</h2>
+    <div class="sub">Стол ${tableLabel(r.table)}</div>
+    <div class="receipt-row"><span>Открыт</span><span>${new Date(r.openedAt).toLocaleString('ru-RU')}</span></div>
+    <div class="receipt-row"><span>Закрыт</span><span>${new Date(r.closedAt).toLocaleString('ru-RU')}</span></div>
+    <div class="receipt-hr"></div>`;
+  r.items.forEach(i => {
+    const sum = parseInt(String(i.price).replace(/[^\d]/g,''),10) * i.qty;
+    html += `<div class="receipt-item"><span class="rn">${i.qty} × ${i.name}</span><span>${sum.toLocaleString('ru-RU')}</span></div>`;
+  });
+  html += `<div class="receipt-hr"></div>
+    <div class="receipt-row"><span>Сумма</span><span>${r.subtotal.toLocaleString('ru-RU')} тг</span></div>
+    <div class="receipt-row"><span>Обслуживание (10%)</span><span>${r.service.toLocaleString('ru-RU')} тг</span></div>
+    <div class="receipt-total"><span>Итого</span><span>${r.total.toLocaleString('ru-RU')} тг</span></div>`;
+  body.innerHTML = html;
+
+  document.getElementById('receipt').classList.add('open');
+}
+
+function showReceiptQr(kind){
+  const r = currentReceipt;
+  if(!r) return;
+  const shareUrl = location.origin + '/receipt.html?id=' + r.id;
+  const text = encodeURIComponent(`Чек Garage Music Bar — стол ${tableLabel(r.table)}, итого ${r.total.toLocaleString('ru-RU')} тг: `);
+  let targetUrl, note;
+  if(kind === 'whatsapp'){
+    targetUrl = `https://wa.me/?text=${text}${encodeURIComponent(shareUrl)}`;
+    note = 'Отсканируйте камерой телефона — откроется WhatsApp с готовым чеком.';
+  } else if(kind === 'telegram'){
+    targetUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`;
+    note = 'Отсканируйте камерой телефона — откроется Telegram с готовым чеком.';
+  } else {
+    targetUrl = shareUrl;
+    note = 'Отсканируйте камерой телефона, чтобы открыть и скачать чек.';
+  }
+  document.getElementById('qrPopupImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(targetUrl)}`;
+  document.getElementById('qrPopupNote').textContent = note;
+  document.getElementById('qrPopup').classList.add('open');
+}
+function closeQrPopup(){
+  document.getElementById('qrPopup').classList.remove('open');
+}
+function closeReceipt(){
+  document.getElementById('receipt').classList.remove('open');
+}
+function downloadReceiptFile(r){
+  if(!r) return;
+  let text = `Garage Music Bar — чек\nСтол ${r.table}\nОткрыт: ${new Date(r.openedAt).toLocaleString('ru-RU')}\nЗакрыт: ${new Date(r.closedAt).toLocaleString('ru-RU')}\n\n`;
+  r.items.forEach(i => {
+    const price = parseInt(String(i.price).replace(/[^\d]/g,''),10) || 0;
+    text += `${i.qty} x ${i.name} — ${(price*i.qty).toLocaleString('ru-RU')} тг\n`;
+  });
+  text += `\nСумма: ${r.subtotal.toLocaleString('ru-RU')} тг\nОбслуживание (10%): ${r.service.toLocaleString('ru-RU')} тг\nИтого: ${r.total.toLocaleString('ru-RU')} тг\n`;
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chek-stol-${r.table}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function cancelOrder(id){
+  showConfirm("Запросить отмену?", "Решение примет менеджер.", () => {
+    socket.send(JSON.stringify({type:"request_cancel_order", orderId:id}));
+  });
+}
+
+function serveOrder(id){
+  socket.send(JSON.stringify({type:"served", orderId:id}));
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+function isIos(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream; }
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function installApp(){
+  if(isStandalone()){ showAlert("Приложение уже установлено на экран."); return; }
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
+  } else if(isIos()){
+    document.getElementById('iosLock').style.display = 'flex';
+  } else {
+    showAlert("Откройте меню браузера и выберите «Добавить на главный экран» / «Установить приложение».");
+  }
+}
+
+function logoutDevice(){
+  showConfirm("Выйти?", "Уведомления перестанут приходить, пока не введёте PIN снова.", () => {
+    unregisterPush();
+    pushSetupDone = false;
+    clearStaffPin();
+    if(socket) socket.close();
+    showUnlockScreen();
+  });
+}
+async function unregisterPush(){
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(!reg) return;
+    const sub = await reg.pushManager.getSubscription();
+    if(sub){
+      const pushId = localStorage.getItem('garage_push_id_'+ROLE);
+      if(pushId && socket && socket.readyState === WebSocket.OPEN){
+        socket.send(JSON.stringify({type:'unregister_push', pushId}));
+      }
+      await sub.unsubscribe();
+    }
+  }catch(e){ /* best-effort — logging out shouldn't fail because of this */ }
+}
+
+function requestGuestHistory(table){
+  document.getElementById('guestHistoryBanner').style.display = 'none';
+  if(socket && socket.readyState === WebSocket.OPEN){
+    socket.send(JSON.stringify({type:"get_guest_history_for_table", table}));
+  }
+}
+function renderGuestHistoryBanner(history){
+  const el = document.getElementById('guestHistoryBanner');
+  if(!history || history.length===0){ el.style.display = 'none'; return; }
+
+  const fmt = (items) => items.map(i => `${i.qty}× ${i.name}`).join(', ');
+  let label, items;
+  if(history.length >= 2){
+    const nameSet = (h) => h.items.map(i=>i.name).sort().join('|');
+    const allSame = history.every(h => nameSet(h) === nameSet(history[0]));
+    if(allSame){
+      label = 'Постоянный гость — обычно заказывает:';
+      items = fmt(history[history.length-1].items);
+    } else {
+      label = 'Постоянный гость — в прошлый раз:';
+      items = fmt(history[history.length-1].items);
+    }
+  } else {
+    label = 'В прошлый раз этот гость заказывал:';
+    items = fmt(history[0].items);
+  }
+  el.className = 'guest-history-banner';
+  el.innerHTML = `${label}<div class="items">${items}</div>`;
+  el.style.display = 'block';
+}
+
+let pendingConfirmCallback = null;
+let pendingPromptCallback = null;
+function showConfirm(question, sub, onYes, danger){
+  document.getElementById('confirmQuestion').textContent = question;
+  const subEl = document.getElementById('confirmSub');
+  if(sub){ subEl.textContent = sub; subEl.style.display = 'block'; }
+  else { subEl.style.display = 'none'; }
+  document.getElementById('confirmInput').style.display = 'none';
+  document.getElementById('confirmCancelBtn').style.display = 'inline-block';
+  document.getElementById('confirmOkBtn').textContent = 'Да';
+  document.getElementById('confirmOkBtn').className = 'confirm-ok' + (danger ? ' danger' : '');
+  pendingConfirmCallback = onYes;
+  pendingPromptCallback = null;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+// Styled stand-in for the browser's alert() — one button, just acknowledges.
+function showAlert(message){
+  document.getElementById('confirmQuestion').textContent = message;
+  document.getElementById('confirmSub').style.display = 'none';
+  document.getElementById('confirmInput').style.display = 'none';
+  document.getElementById('confirmCancelBtn').style.display = 'none';
+  document.getElementById('confirmOkBtn').textContent = 'Понятно';
+  document.getElementById('confirmOkBtn').className = 'confirm-ok';
+  pendingConfirmCallback = null;
+  pendingPromptCallback = null;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+// Styled stand-in for the browser's prompt() — text field, OK/Cancel.
+function showPrompt(question, defaultValue, onSubmit){
+  document.getElementById('confirmQuestion').textContent = question;
+  document.getElementById('confirmSub').style.display = 'none';
+  const input = document.getElementById('confirmInput');
+  input.style.display = 'block';
+  input.value = defaultValue || '';
+  document.getElementById('confirmCancelBtn').style.display = 'inline-block';
+  document.getElementById('confirmOkBtn').textContent = 'ОК';
+  document.getElementById('confirmOkBtn').className = 'confirm-ok';
+  pendingConfirmCallback = null;
+  pendingPromptCallback = onSubmit;
+  document.getElementById('confirmOverlay').classList.add('open');
+  setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+function confirmYes(){
+  const input = document.getElementById('confirmInput');
+  const value = input.value;
+  document.getElementById('confirmOverlay').classList.remove('open');
+  const cb = pendingConfirmCallback;
+  const pcb = pendingPromptCallback;
+  pendingConfirmCallback = null;
+  pendingPromptCallback = null;
+  if(pcb) pcb(value);
+  else if(cb) cb();
+}
+function confirmNo(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  const pcb = pendingPromptCallback;
+  pendingConfirmCallback = null;
+  pendingPromptCallback = null;
+  if(pcb) pcb(null); // matches native prompt()'s "cancelled" signal
+}
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+let swRegistration = null;
+let pushSetupInFlight = false;
+async function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+  try{
+    swRegistration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+    await navigator.serviceWorker.ready;
+    tellSwAppUrl();
+  }catch(e){ /* not fatal — installability may be degraded, but the app still works */ }
+}
+registerServiceWorker();
+
+function tellSwAppUrl(){
+  const url = location.pathname + location.search;
+  const send = (sw) => { try{ sw.postMessage({ type:'app_url', url }); }catch(e){} };
+  if(navigator.serviceWorker.controller) send(navigator.serviceWorker.controller);
+  if(swRegistration && swRegistration.active) send(swRegistration.active);
+}
+
+async function setupPush(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if(!vapidPublicKey) return;
+  if(!("Notification" in window) || Notification.permission !== 'granted') return;
+  if(!socket || socket.readyState !== WebSocket.OPEN) return;
+  if(pushSetupInFlight) return;
+  pushSetupInFlight = true;
+  try{
+    const reg = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+    await navigator.serviceWorker.ready;
+    swRegistration = reg;
+    tellSwAppUrl();
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
+    }
+    let pushId = localStorage.getItem('garage_push_id_'+ROLE);
+    if(!pushId){ pushId = (crypto.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random())); localStorage.setItem('garage_push_id_'+ROLE, pushId); }
+    socket.send(JSON.stringify({type:'register_push', pushId, subscription: sub.toJSON()}));
+    pushSetupDone = true;
+  }catch(e){
+    pushSetupDone = false;
+  }finally{
+    pushSetupInFlight = false;
+  }
+}
+
+function updateNotifPermBanner(){
+  const banner = document.getElementById('notifPermBanner');
+  if(!banner) return;
+  if(!("Notification" in window)){
+    banner.style.display = 'none';
+    return;
+  }
+  const standalone = isStandalone();
+  const textEl = banner.querySelector('span');
+  const btnEl = banner.querySelector('button');
+  if(Notification.permission === "granted"){
+    banner.style.display = 'none';
+    return;
+  }
+  if(isIos() && !standalone){
+    textEl.textContent = "На iPhone уведомления при выключенном экране работают только из иконки на «Домой». Откройте приложение с иконки и нажмите «Включить».";
+    btnEl.style.display = 'none';
+    banner.style.display = 'flex';
+    return;
+  }
+  if(Notification.permission === "denied"){
+    textEl.textContent = isIos()
+      ? "Уведомления заблокированы — включите вручную: Настройки → Safari/приложение → Уведомления"
+      : "Уведомления заблокированы браузером — откройте значок 🔒 рядом с адресом сайта → Разрешения → Уведомления → Разрешить";
+    btnEl.style.display = 'none';
+  } else {
+    textEl.textContent = "Уведомления выключены — без них заказы при выключенном экране не придут";
+    btnEl.style.display = 'inline-block';
+  }
+  banner.style.display = 'flex';
+}
+function requestNotifPermission(){
+  if(!("Notification" in window)) return;
+  Notification.requestPermission().then((perm) => {
+    updateNotifPermBanner();
+    if(perm === 'granted') setupPush();
+  });
+}
+updateNotifPermBanner();
+const APP_VERSION = "26";
+let updateDismissed = false;
+function checkForUpdate(){
+  if(updateDismissed) return;
+  fetch(location.pathname, {cache:'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const m = html.match(/const APP_VERSION = "([^"]+)"/);
+      if(m && m[1] !== APP_VERSION){
+        document.getElementById('updateBanner').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+function applyUpdate(){
+  const url = new URL(location.href);
+  url.searchParams.set('_r', String(Date.now()));
+  location.href = url.pathname + url.search;
+}
+function dismissUpdateBanner(){
+  updateDismissed = true;
+  document.getElementById('updateBanner').style.display = 'none';
+}
+setTimeout(checkForUpdate, 5000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) return;
+  checkForUpdate();
+  updateNotifPermBanner();
+  setupPush();
+});
+
+function updateChangeRoleLink(){
+  const roles = ['waiter','cook','bartender'];
+  const count = roles.filter(r => localStorage.getItem('garage_staff_id_'+r)).length;
+  const link = document.getElementById('changeRoleLink');
+  if(link) link.style.display = count > 1 ? 'inline' : 'none';
+}
+updateChangeRoleLink();
+
+renderTables();
+renderDestTabs();
+renderChips();
+renderMenu();
+connect();
+</script>
+</body>
+</html>

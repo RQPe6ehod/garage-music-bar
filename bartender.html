@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Garage Music Bar — Бар</title>
+<script>
+(function(){
+  var id = '';
+  try {
+    var m = /(?:^|[?&])staff=([^&]+)/.exec(location.search);
+    if (m) id = decodeURIComponent(m[1].replace(/\+/g, ' '));
+    if (!id) id = localStorage.getItem('garage_staff_id_bartender') || '';
+  } catch (e) {}
+  var l = document.createElement('link');
+  l.rel = 'manifest';
+  l.id = 'manifestLink';
+  l.href = '/manifest-bartender.json' + (id ? ('?staff=' + encodeURIComponent(id)) : '');
+  document.head.appendChild(l);
+})();
+</script>
+<meta name="theme-color" content="#E0954A">
+<link rel="apple-touch-icon" href="/icons/icon-bartender-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Garage Бар">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#101E2A; --bg-deep:#0A141C; --panel:#17293A; --line:#254257;
+    --gold:#3FA9E0; --cream:#E8F3FA; --muted:#7FA0B8; --green:#4CAF7D; --red:#D9534F;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; min-height:100vh; }
+  header{ position:sticky; top:0; z-index:20; background:var(--bg-deep); border-bottom:1px solid var(--line); padding:16px 18px; }
+  header h1{ font-family:'Fraunces',serif; font-size:20px; margin:0 0 2px; }
+  header .conn{ font-size:13px; color:var(--muted); }
+  header .conn.on{ color:var(--green); }
+  header .conn.off{ color:var(--red); }
+
+  main{ padding:16px 18px; max-width:520px; margin:0 auto; }
+  .grid{ display:grid; gap:14px; }
+  .ticket{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .ticket.new{ animation: pulse 1.4s ease-in-out 2; border-color: var(--gold); }
+  @keyframes pulse{ 0%,100%{ box-shadow:0 0 0 rgba(63,169,224,0);} 50%{ box-shadow:0 0 0 8px rgba(63,169,224,.15);} }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes popIn{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+  @keyframes slideUpIn{ from{ opacity:0; transform:translateY(24px); } to{ opacity:1; transform:translateY(0); } }
+  .ticket .top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .table-badge{ font-family:'Fraunces',serif; font-weight:700; font-size:22px; color:var(--gold); }
+  .time{ font-size:13px; color:var(--muted); }
+  .line{ font-size:17.5px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .item-note{
+    display:flex; align-items:flex-start; gap:7px;
+    background:rgba(63,169,224,.18); border:1.5px solid var(--gold); border-radius:9px;
+    padding:7px 10px; margin:2px 0 8px; font-size:16px; font-weight:700; color:var(--gold);
+    animation:noteFlash 1.4s ease-in-out 2;
+  }
+  .item-note .ico{ flex-shrink:0; font-size:16.5px; line-height:1.3; }
+  @keyframes noteFlash{
+    0%,100%{ background:rgba(63,169,224,.18); }
+    50%{ background:rgba(63,169,224,.42); }
+  }
+  .line:last-of-type{ border-bottom:none; }
+  .line b{ color:var(--gold); }
+  .done-btn{ margin-top:14px; width:100%; padding:14px; border:none; border-radius:12px; background:var(--green); color:#0E1D17; font-weight:700; font-size:16.5px; }
+  .accept-btn{ margin-top:14px; width:100%; padding:14px; border:none; border-radius:12px; background:var(--gold); color:var(--bg-deep); font-weight:700; font-size:16.5px; }
+  .header-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .install-btn{
+    flex-shrink:0; display:flex; align-items:center; gap:6px;
+    border:1px solid var(--gold); color:var(--gold); background:transparent;
+    padding:7px 12px; border-radius:999px; font-size:13.5px; font-weight:700;
+    white-space:nowrap;
+  }
+  .install-btn:active{ background:var(--gold); color:var(--bg-deep); }
+  .settings-links{ margin-top:8px; display:flex; gap:6px; }
+  .settings-links a{
+    font-size:12.5px; color:var(--muted); text-decoration:none;
+    border:1px solid var(--line); border-radius:999px; padding:4px 10px;
+    background:var(--panel);
+  }
+  .settings-links a:active{ background:var(--gold); color:var(--bg-deep); border-color:var(--gold); }
+  .status-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .status-new{ font-size:13px; padding:3px 9px; border-radius:999px; font-weight:700; background:rgba(224,149,74,.2); color:var(--gold); }
+  .timer{ font-family:'Fraunces',serif; font-weight:700; font-size:19px; color:var(--green); }
+  .empty{ color:var(--muted); text-align:center; padding:60px 20px; font-size:16.5px; }
+
+  .nav-row{ display:flex; gap:8px; margin-bottom:16px; }
+  .nav-row button{ flex:1; padding:11px 0; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--cream); font-weight:600; font-size:15px; position:relative; }
+  .nav-row button .badge-count{ position:absolute; top:-6px; right:-6px; background:var(--red); color:#fff; font-size:12px; font-weight:700; border-radius:999px; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:16px; }
+  .tabs button{ flex:1; padding:9px 0; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--muted); font-weight:600; font-size:15px; }
+  .tabs button.active{ background:var(--gold); border-color:var(--gold); color:var(--bg-deep); }
+
+  .day-header{ font-family:'Fraunces',serif; color:var(--gold); font-size:16.5px; margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .day-header:first-child{ margin-top:0; }
+
+  .sheet{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:90; display:none; align-items:flex-end; justify-content:center; }
+  .sheet.open{ display:flex; animation: fadeIn .22s ease; }
+  .sheet-panel{ width:100%; max-width:520px; background:var(--bg); border-radius:20px 20px 0 0; max-height:85vh; display:flex; flex-direction:column; animation: slideUpIn .28s cubic-bezier(.2,1,.3,1); }
+  .sheet-head{ padding:18px 20px 10px; border-bottom:1px solid var(--line); }
+  .sheet-head h2{ font-family:'Fraunces',serif; font-size:19px; margin:0 0 4px; }
+  .sheet-head p{ font-size:14px; color:var(--muted); margin:0; }
+  .sheet-body{ overflow-y:auto; padding:10px 20px; flex:1; }
+  .sheet-cat{ font-family:'Fraunces',serif; color:var(--gold); font-size:15.5px; margin:14px 0 6px; }
+  .pick-item{ padding:10px 0; border-bottom:1px solid var(--line); }
+  .pick-row{ display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .pick-row .name{ font-size:15.5px; }
+  .pick-row .check{ width:20px; height:20px; border-radius:6px; border:1.5px solid var(--line); flex-shrink:0; }
+  .pick-item.selected .check{ background:var(--gold); border-color:var(--gold); }
+  .pick-comment{ display:none; margin-top:8px; width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg-deep); color:var(--cream); font-size:15px; }
+  .pick-item.selected .pick-comment{ display:block; }
+  .pick-existing{ font-size:13.5px; color:var(--muted); margin-top:3px; }
+  .sheet-actions{ display:flex; gap:10px; padding:16px 20px; border-top:1px solid var(--line); }
+  .sheet-actions button{ flex:1; padding:13px; border-radius:12px; font-weight:700; border:none; }
+  .sheet-actions .cancel{ background:transparent; border:1px solid var(--line); color:var(--cream); }
+  .sheet-actions .confirm{ background:var(--gold); color:var(--bg-deep); }
+
+  .lock{ position:fixed; inset:0; background:var(--bg-deep); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; animation: fadeIn .25s ease; }
+  .lock-box{ width:100%; max-width:300px; text-align:center; animation: popIn .3s cubic-bezier(.2,1,.3,1); }
+  .lock-box h2{ font-family:'Fraunces',serif; color:var(--cream); margin-bottom:6px; }
+  .lock-box p{ color:var(--muted); font-size:15px; margin-bottom:18px; }
+  .lock-box input{ width:100%; text-align:center; font-size:24px; letter-spacing:8px; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--cream); margin-bottom:12px; }
+  .lock-box button{ width:100%; padding:13px; border:none; border-radius:12px; background:var(--gold); color:var(--bg-deep); font-weight:700; font-size:16.5px; }
+
+  .confirm-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:210; display:none; align-items:center; justify-content:center; padding:24px; }
+  .confirm-overlay.open{ display:flex; animation: fadeIn .2s ease; }
+  .confirm-box{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px 22px; max-width:300px; width:100%; text-align:center; animation: popIn .25s cubic-bezier(.2,1,.3,1); }
+  .confirm-brand{ font-family:'Fraunces',serif; color:var(--gold); font-size:14px; font-weight:700; margin-bottom:12px; letter-spacing:.06em; text-transform:uppercase; }
+  .confirm-question{ font-size:17.5px; font-weight:700; color:var(--cream); margin-bottom:6px; }
+  .confirm-sub{ font-size:14.5px; color:var(--muted); margin-bottom:20px; line-height:1.4; display:none; }
+  .confirm-input{
+    width:100%; box-sizing:border-box; padding:11px 12px; margin-bottom:20px;
+    border-radius:10px; border:1px solid var(--line); background:var(--bg-deep); color:var(--cream);
+    font-size:15.5px; font-family:inherit;
+  }
+  .confirm-input:focus{ outline:none; border-color:var(--gold); }
+  .confirm-actions{ display:flex; gap:10px; }
+  .confirm-actions button{ flex:1; padding:11px; border-radius:10px; font-weight:700; font-size:15.5px; border:none; }
+  .confirm-cancel{ background:var(--bg-deep); color:var(--cream); border:1px solid var(--line); }
+  .confirm-ok{ background:var(--gold); color:var(--bg-deep); }
+  .confirm-ok.danger{ background:var(--red); color:#fff; }
+  .lock-box .err{ color:var(--red); font-size:14.5px; margin-top:10px; min-height:16px; }
+</style>
+</head>
+<body>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-brand">Garage Music Bar</div>
+    <div class="confirm-question" id="confirmQuestion"></div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <input type="text" class="confirm-input" id="confirmInput" style="display:none;">
+    <div class="confirm-actions">
+      <button class="confirm-cancel" id="confirmCancelBtn" onclick="confirmNo()">Отмена</button>
+      <button class="confirm-ok" id="confirmOkBtn" onclick="confirmYes()">Да</button>
+    </div>
+  </div>
+</div>
+
+<div class="lock" id="lock">
+  <div class="lock-box">
+    <h2>Garage · Бар</h2>
+    <p id="lockMsg">У вас нет доступа. Обратитесь к менеджеру, чтобы получить персональную QR-ссылку.</p>
+    <input id="unlockPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" style="display:none;">
+    <button id="unlockBtn" onclick="submitUnlockPin()" style="display:none;">Войти</button>
+    <button id="backToStaffBtn" onclick="location.href='/staff.html'" style="display:none; background:var(--panel); color:var(--cream); border:1px solid var(--line); margin-top:10px;">Вернуться к выбору</button>
+    <div class="err" id="pinErr"></div>
+  </div>
+</div>
+
+<div class="lock" id="nameLock" style="display:none">
+  <div class="lock-box">
+    <h2>Как вас зовут?</h2>
+    <p>Ваше имя увидят официант и менеджер</p>
+    <input id="nameInput" type="text" maxlength="30" placeholder="Иван" style="letter-spacing:normal; font-size:19px; text-align:left; padding:14px 16px;">
+    <button onclick="submitName()">Сохранить</button>
+  </div>
+</div>
+
+<div class="lock" id="iosLock" style="display:none">
+  <div class="lock-box">
+    <h2>Установка на экран</h2>
+    <p>Важно: в адресной строке должна быть ссылка с <b>?staff=</b> (из QR). Затем: «Поделиться» <span style="font-weight:700;">⬆️</span> → <span style="color:var(--gold);font-weight:600;">«На экран «Домой»»</span>. Старую иконку без доступа сначала удалите.</p>
+    <button onclick="document.getElementById('iosLock').style.display='none'">Понятно</button>
+  </div>
+</div>
+
+<div id="notifPermBanner" style="display:none; position:sticky; top:0; z-index:149; background:var(--red); color:#fff; padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:14.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1); flex-wrap:wrap;">
+  <span style="min-width:0; word-break:break-word; flex:1 1 auto;">Уведомления выключены — вы можете пропустить заказ</span>
+  <button onclick="requestNotifPermission()" style="background:#fff; color:var(--red); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px; flex-shrink:0;">Включить</button>
+</div>
+
+<div id="updateBanner" style="display:none; position:sticky; top:0; z-index:150; background:var(--gold); color:var(--bg-deep); padding:9px 14px; align-items:center; justify-content:space-between; gap:10px; font-size:14.5px; font-weight:700; animation: popIn .3s cubic-bezier(.2,1,.3,1);">
+  <span>Доступна новая версия приложения</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button onclick="applyUpdate()" style="background:var(--bg-deep); color:var(--gold); border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px;">Обновить</button>
+    <button onclick="dismissUpdateBanner()" style="background:transparent; border:none; color:var(--bg-deep); font-size:17.5px; font-weight:700; padding:0 4px;">×</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-top">
+    <h1>Garage · Бар <span id="staffNameTag" onclick="openNamePrompt()" style="color:var(--gold); font-weight:600; cursor:pointer;"></span></h1>
+    <button class="install-btn" onclick="installApp()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/><path d="M12 7v5m-2.5-2.5L12 12l2.5-2.5" stroke-width="2"/></svg>
+      Иконка на телефон
+    </button>
+  </div>
+  <div class="conn off" id="conn">подключение…</div>
+  <div class="settings-links"><a href="#" onclick="openNamePrompt();return false;">Изменить имя</a><a href="#" onclick="openStaffPinPrompt();return false;">Изменить PIN</a><a href="staff.html" id="changeRoleLink" style="display:none;">Сменить роль</a><a href="#" onclick="logoutDevice();return false;">Выйти</a></div>
+</header>
+
+<main>
+  <div class="nav-row">
+    <button onclick="openDisableSheet()">Убрать из меню</button>
+    <button onclick="openEnableSheet()">Вернуть в меню<span class="badge-count" id="unavailCount" style="display:none">0</span></button>
+  </div>
+  <div class="nav-row">
+    <button onclick="openStockSheet()">Склад<span class="badge-count" id="lowStockCount" style="display:none">0</span></button>
+  </div>
+  <div class="tabs">
+    <button class="active" onclick="setBoardMode('active')">Заказы</button>
+    <button onclick="setBoardMode('history')">История</button>
+  </div>
+  <div class="grid" id="board"></div>
+  <div id="historyView" style="display:none"></div>
+</main>
+
+<div class="sheet" id="stockSheet">
+  <div class="sheet-panel">
+    <div class="sheet-head"><h2>Склад — бар</h2><p>Укажите остаток и порог, при котором прислать напоминание. Пусто = не отслеживать.</p></div>
+    <div class="sheet-body" id="stockBody"></div>
+    <div class="sheet-actions">
+      <button class="cancel" onclick="closeSheet('stockSheet')">Готово</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="disableSheet">
+  <div class="sheet-panel">
+    <div class="sheet-head"><h2>Убрать из меню</h2><p>Отметьте позиции, которые сейчас нельзя приготовить, и укажите причину</p></div>
+    <div class="sheet-body" id="disableBody"></div>
+    <div class="sheet-actions">
+      <button class="cancel" onclick="closeSheet('disableSheet')">Отмена</button>
+      <button class="confirm" onclick="confirmDisable()">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="enableSheet">
+  <div class="sheet-panel">
+    <div class="sheet-head"><h2>Вернуть в меню</h2><p>Отметьте позиции, которые снова можно готовить</p></div>
+    <div class="sheet-body" id="enableBody"></div>
+    <div class="sheet-actions">
+      <button class="cancel" onclick="closeSheet('enableSheet')">Отмена</button>
+      <button class="confirm" onclick="confirmEnable()">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WS_URL = "wss://api.restorun.kuatov.kz/ws?venue=garage-music-bar";
+const ROLE = "bartender";
+let socket, allOrders = [], newIds = new Set();
+let allHistory = [];
+let rooms = [{id:"default", name:"Зал", tableCount:20}];
+let boardMode = 'active';
+let staffId = null;
+let staffName = "";
+let unavailable = {};
+let inventory = {};
+let vapidPublicKey = null;
+let pushSetupDone = false;
+let pickerSelection = {}; // name -> comment (for disable sheet)
+let enableSelection = new Set(); // names selected to restore
+
+let BAR_MENU = []; // populated from the server's shared menu (see state handler)
+const DEST = "bar";
+
+(function initStaffId(){
+  const url = new URL(window.location.href);
+  const fromUrl = url.searchParams.get('staff');
+  if(fromUrl){
+    localStorage.setItem('garage_staff_id_'+ROLE, fromUrl);
+  }
+  staffId = localStorage.getItem('garage_staff_id_'+ROLE);
+  if(staffId && !url.searchParams.get('staff')){
+    url.searchParams.set('staff', staffId);
+    window.history.replaceState({}, '', url.pathname + url.search);
+  }
+  if(staffId){
+    const link = document.getElementById('manifestLink');
+    if(link) link.href = '/manifest-bartender.json?staff=' + encodeURIComponent(staffId);
+  }
+})();
+
+function getStaffPin(){ return localStorage.getItem('garage_staff_pin_'+ROLE); }
+function setStaffPin(p){ localStorage.setItem('garage_staff_pin_'+ROLE, p); }
+function clearStaffPin(){ localStorage.removeItem('garage_staff_pin_'+ROLE); }
+
+let triedDefaultPin = false;
+let unknownStaffRetries = 0;
+let locked = false;
+
+function closeAnyOpenSheets(){
+  ['stockSheet','disableSheet','enableSheet'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('open');
+  });
+}
+function showLock(){
+  closeAnyOpenSheets();
+  const standalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
+  document.getElementById('lockMsg').textContent = standalone
+    ? "Иконка открылась без персональной ссылки. Удалите её с экрана «Домой», откройте свой QR в Safari и снова: Поделиться → На экран «Домой»."
+    : "У вас нет доступа. Обратитесь к менеджеру, чтобы получить персональную QR-ссылку.";
+  document.getElementById('unlockPinInput').style.display = 'none';
+  document.getElementById('unlockBtn').style.display = 'none';
+  document.getElementById('backToStaffBtn').style.display = 'block';
+  document.getElementById('lock').style.display = 'flex';
+}
+function showUnlockScreen(err){
+  closeAnyOpenSheets();
+  locked = true;
+  document.getElementById('lockMsg').textContent = "Сессия заперта. Введите свой PIN, чтобы продолжить работу.";
+  document.getElementById('unlockPinInput').style.display = 'block';
+  document.getElementById('unlockBtn').style.display = 'block';
+  document.getElementById('backToStaffBtn').style.display = 'none';
+  document.getElementById('pinErr').textContent = err || "";
+  document.getElementById('unlockPinInput').value = "";
+  document.getElementById('lock').style.display = 'flex';
+}
+function hideLock(){ document.getElementById('lock').style.display = 'none'; }
+function submitUnlockPin(){
+  const p = document.getElementById('unlockPinInput').value.trim();
+  if(!/^\d{4,6}$/.test(p)) return;
+  locked = false;
+  setStaffPin(p);
+  document.getElementById('pinErr').textContent = "";
+  connect();
+}
+function showNameLock(){
+  document.getElementById('nameInput').value = staffName || "";
+  document.getElementById('nameLock').style.display = 'flex';
+}
+function hideNameLock(){ document.getElementById('nameLock').style.display = 'none'; }
+function openNamePrompt(){ showNameLock(); }
+function submitName(){
+  const name = document.getElementById('nameInput').value.trim();
+  if(!name) return;
+  staffName = name;
+  socket.send(JSON.stringify({type:"set_staff_name", staffId, name}));
+  hideNameLock();
+  updateStaffNameTag();
+}
+function updateStaffNameTag(){
+  document.getElementById('staffNameTag').textContent = staffName ? "— " + staffName : "— указать имя";
+}
+function openStaffPinPrompt(){
+  showPrompt("Новый PIN (4-6 цифр) — понадобится после каждого выхода:", "", (p1) => {
+    if(p1 === null) return;
+    const clean = p1.trim();
+    if(!/^\d{4,6}$/.test(clean)){ showAlert("PIN должен состоять из 4-6 цифр"); return; }
+    socket.send(JSON.stringify({type:"set_staff_pin", staffId, newPin: clean}));
+    setStaffPin(clean);
+  });
+}
+
+function connect(){
+  if(!staffId){ showLock(); return; }
+  let pin = getStaffPin();
+  let usedDefaultGuess = false;
+  if(!pin){
+    if(!triedDefaultPin){
+      triedDefaultPin = true;
+      usedDefaultGuess = true;
+      pin = "1111";
+    } else {
+      showUnlockScreen();
+      return;
+    }
+  }
+  socket = new WebSocket(WS_URL);
+  socket.onopen = () => {
+    setConn(true);
+    socket.send(JSON.stringify({type:"hello", role:ROLE, staffId, pin}));
+  };
+  socket.onclose = () => { setConn(false); if(!locked) setTimeout(connect, 2000); };
+  socket.onerror = () => socket.close();
+  socket.onmessage = (evt) => {
+    const msg = JSON.parse(evt.data);
+    if(msg.type === "auth_ok"){ hideLock(); setStaffPin(pin); unknownStaffRetries = 0; }
+    if(msg.type === "auth_error"){
+      if(msg.reason === "unknown_staff"){
+        if(unknownStaffRetries < 1){
+          unknownStaffRetries++;
+          setTimeout(connect, 1200);
+          return;
+        }
+        localStorage.removeItem('garage_staff_id_'+ROLE);
+        localStorage.removeItem('garage_staff_name_'+ROLE);
+        clearStaffPin();
+        staffId = null;
+        document.getElementById('lockMsg').textContent = "Вы не являетесь барменом. Обратитесь к менеджеру, чтобы вас добавили.";
+        document.getElementById('unlockPinInput').style.display = 'none';
+        document.getElementById('unlockBtn').style.display = 'none';
+        document.getElementById('backToStaffBtn').style.display = 'block';
+        document.getElementById('lock').style.display = 'flex';
+      } else if(msg.reason === "wrong_pin"){
+        clearStaffPin();
+        showUnlockScreen(usedDefaultGuess ? "" : "Неверный PIN");
+      } else {
+        showLock();
+      }
+    }
+    if(msg.type === "staff_pin_changed"){ showAlert("PIN обновлён."); }
+    if(msg.type === "staff_pin_change_error"){ showAlert("Не удалось сменить PIN — используйте 4-6 цифр."); }
+    if(msg.type === "state"){
+      allOrders = msg.orders;
+      allHistory = msg.history || [];
+      rooms = msg.rooms || rooms;
+      unavailable = msg.unavailable || {};
+      inventory = (msg.inventory && msg.inventory[DEST]) || {};
+      if(msg.menu && msg.menu[DEST]) BAR_MENU = msg.menu[DEST];
+      vapidPublicKey = msg.vapidPublicKey || vapidPublicKey;
+      if(vapidPublicKey) setupPush();
+      updateUnavailBadge();
+      updateLowStockBadge();
+      if(staffId){
+        const me = (msg.staff || []).find(s => s.id === staffId);
+        if(me){
+          staffName = me.name || "";
+          updateStaffNameTag();
+          if(staffName) localStorage.setItem('garage_staff_name_'+ROLE, staffName);
+          if(!staffName) showNameLock(); else hideNameLock();
+        }
+      }
+      render();
+      if(boardMode === 'history') renderHistory();
+    }
+    if(msg.type === "notify"){ ding(msg); }
+  };
+}
+function setConn(on){
+  const el = document.getElementById('conn');
+  el.textContent = on ? "в сети" : "нет связи — переподключение…";
+  el.className = "conn " + (on?"on":"off");
+}
+function tableLabel(globalNum){
+  if(rooms.length <= 1) return String(globalNum);
+  let offset = 0;
+  for(const room of rooms){
+    if(globalNum <= offset + room.tableCount) return `${room.name} · ${globalNum - offset}`;
+    offset += room.tableCount;
+  }
+  return String(globalNum);
+}
+
+function ding(msg){
+  if(msg.kind === "low_stock"){
+    if(navigator.vibrate) navigator.vibrate([120,60,120]);
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification("Заканчивается: " + msg.name + " (осталось " + msg.qty + ")");
+    } else {
+      showAlert("Заканчивается: " + msg.name + " — осталось " + msg.qty);
+    }
+    return;
+  }
+  if(msg.cancelled) return;
+  if(navigator.vibrate) navigator.vibrate([250,100,250,100,250]);
+  if("Notification" in window && Notification.permission === "granted"){
+    new Notification("Новый заказ — стол " + tableLabel(msg.table));
+  }
+  newIds.add(msg.orderId);
+}
+
+function render(){
+  const el = document.getElementById('board');
+  const active = allOrders.filter(o => o.barStatus === "pending" || o.barStatus === "accepted");
+  if(active.length===0){ el.innerHTML = `<div class="empty">Новых заказов нет 🍸</div>`; return; }
+  let html = "";
+  active.slice().sort((a,b)=>a.createdAt-b.createdAt).forEach(o => {
+    const isNew = newIds.has(o.id);
+    html += `<div class="ticket ${isNew?'new':''}">
+      <div class="top"><span class="table-badge">Стол ${tableLabel(o.table)}</span><span class="time">${timeAgo(o.createdAt)}</span></div>`;
+    if(o.waiterName) html += `<div class="line" style="font-size:14px;color:var(--muted);border-bottom:none;padding:0 0 6px;">Официант: ${o.waiterName}</div>`;
+    o.barItems.forEach(i => {
+      html += `<div class="line"><b>${i.qty}×</b> ${i.name}</div>`;
+      if(i.note) html += `<div class="item-note"><span class="ico">💬</span><span>${i.note}</span></div>`;
+    });
+    if(o.barStatus === "pending"){
+      html += `<div class="status-row"><span class="status-new">Новый</span></div>
+        <button class="accept-btn" onclick="acceptBarOrder('${o.id}')">Принять в работу</button>`;
+    } else {
+      html += `<div class="status-row"><span>Готовится</span><span class="timer" data-since="${o.barAcceptedAt}">00:00</span></div>
+        <button class="done-btn" onclick="markBarReady('${o.id}')">Готово</button>`;
+    }
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+  newIds.clear();
+}
+function timeAgo(ts){
+  const m = Math.floor((Date.now()-ts)/60000);
+  return m<1 ? "только что" : m+" мин назад";
+}
+function cssSafe(s){ return s.replace(/[^a-zA-Zа-яА-Я0-9]/g,'_'); }
+
+function setBoardMode(m){
+  boardMode = m;
+  document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('active', (i===0)===(m==='active')));
+  document.getElementById('board').style.display = m==='active' ? '' : 'none';
+  document.getElementById('historyView').style.display = m==='history' ? '' : 'none';
+  if(m==='history') renderHistory();
+}
+
+function dayLabel(ts){
+  const d = new Date(ts);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate()-1);
+  if(d.toDateString()===today.toDateString()) return "Сегодня";
+  if(d.toDateString()===yesterday.toDateString()) return "Вчера";
+  return d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+}
+
+function renderHistory(){
+  const el = document.getElementById('historyView');
+  const mine = allHistory.filter(o => o.bartenderName === staffName && o.barItems.length>0).sort((a,b)=>b.servedAt-a.servedAt);
+  if(mine.length===0){ el.innerHTML = `<div class="empty">Пока нет приготовленных заказов</div>`; return; }
+  let html = "";
+  let lastDay = null;
+  mine.forEach(o => {
+    const day = dayLabel(o.servedAt);
+    if(day !== lastDay){ html += `<div class="day-header">${day}</div>`; lastDay = day; }
+    html += `<div class="ticket">
+      <div class="top"><span class="table-badge">Стол ${tableLabel(o.table)}</span><span class="time">${new Date(o.servedAt).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
+    o.barItems.forEach(i => {
+      html += `<div class="line">${i.qty}× ${i.name}</div>`;
+      if(i.note) html += `<div class="item-note" style="animation:none;"><span class="ico">💬</span><span>${i.note}</span></div>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+}
+function tickTimers(){
+  document.querySelectorAll('.timer[data-since]').forEach(el => {
+    const since = parseInt(el.dataset.since, 10);
+    const s = Math.max(0, Math.floor((Date.now()-since)/1000));
+    const mm = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    el.textContent = mm+":"+ss;
+  });
+}
+function acceptBarOrder(id){ socket.send(JSON.stringify({type:"bar_accept", orderId:id})); }
+function markBarReady(id){ socket.send(JSON.stringify({type:"bar_ready", orderId:id})); }
+
+function updateLowStockBadge(){
+  const count = Object.values(inventory).filter(s => s.qty <= s.threshold).length;
+  const el = document.getElementById('lowStockCount');
+  if(count>0){ el.style.display='flex'; el.textContent = count; } else { el.style.display='none'; }
+}
+
+function openStockSheet(){
+  const body = document.getElementById('stockBody');
+  let html = "";
+  BAR_MENU.forEach(cat => {
+    html += `<div class="sheet-cat">${cat.title.ru}</div>`;
+    cat.items.forEach(it => {
+      const name = it.name.ru;
+      const s = inventory[name];
+      const safe = name.replace(/'/g,"\\'");
+      const low = s && s.qty <= s.threshold;
+      html += `<div class="pick-item" style="display:block;">
+        <div class="name" style="margin-bottom:6px;${low?'color:var(--red);':''}">${name}${s ? ` <small style="color:${low?'var(--red)':'var(--muted)'};">— остаток: ${s.qty}</small>` : ''}</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" min="0" placeholder="Остаток" value="${s?s.qty:''}" id="qty-${cssSafe(name)}" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-deep);color:var(--cream);">
+          <input type="number" min="0" placeholder="Порог" value="${s?s.threshold:''}" id="thr-${cssSafe(name)}" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-deep);color:var(--cream);">
+          <button onclick="saveStock('${safe}')" style="padding:8px 12px;border-radius:8px;border:none;background:var(--gold);color:var(--bg-deep);font-weight:700;">✓</button>
+          ${s ? `<button onclick="clearStockRow('${safe}')" style="padding:8px 10px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);">✕</button>` : ''}
+        </div>
+      </div>`;
+    });
+  });
+  body.innerHTML = html;
+  document.getElementById('stockSheet').classList.add('open');
+}
+
+function saveStock(name){
+  const qtyEl = document.getElementById('qty-'+cssSafe(name));
+  const thrEl = document.getElementById('thr-'+cssSafe(name));
+  const qty = qtyEl.value.trim();
+  const threshold = thrEl.value.trim();
+  if(qty === ''){ showAlert("Укажите остаток (или нажмите ✕, чтобы убрать отслеживание)"); return; }
+  socket.send(JSON.stringify({type:"set_stock", name, qty: parseInt(qty,10)||0, threshold: parseInt(threshold,10)||0}));
+}
+function clearStockRow(name){
+  socket.send(JSON.stringify({type:"clear_stock", name}));
+}
+
+function updateUnavailBadge(){
+  const count = Object.keys(unavailable).filter(k => k.startsWith(DEST+"|")).length;
+  const el = document.getElementById('unavailCount');
+  if(count>0){ el.style.display='flex'; el.textContent = count; } else { el.style.display='none'; }
+}
+
+function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
+
+function openDisableSheet(){
+  pickerSelection = {};
+  const body = document.getElementById('disableBody');
+  let html = "";
+  BAR_MENU.forEach(cat => {
+    const avail = cat.items.filter(it => !unavailable[DEST+"|"+it.name.ru]);
+    if(avail.length===0) return;
+    html += `<div class="sheet-cat">${cat.title.ru}</div>`;
+    avail.forEach(it => {
+      const name = it.name.ru;
+      const safe = name.replace(/'/g,"\\'");
+      html += `<div class="pick-item" id="dis-${cssSafe(name)}">
+        <div class="pick-row" onclick="togglePick('${safe}')">
+          <span class="name">${name}</span>
+          <span class="check"></span>
+        </div>
+        <input class="pick-comment" placeholder="Причина (например: нет мяса)" oninput="pickerSelection['${safe}']=this.value">
+      </div>`;
+    });
+  });
+  body.innerHTML = html || `<div class="empty">Все позиции уже доступны</div>`;
+  document.getElementById('disableSheet').classList.add('open');
+}
+function togglePick(name){
+  const el = document.getElementById('dis-'+cssSafe(name));
+  if(name in pickerSelection){ delete pickerSelection[name]; el.classList.remove('selected'); }
+  else { pickerSelection[name] = ""; el.classList.add('selected'); }
+}
+function confirmDisable(){
+  const items = Object.keys(pickerSelection).map(name => ({name, comment: pickerSelection[name] || ""}));
+  if(items.length===0){ closeSheet('disableSheet'); return; }
+  socket.send(JSON.stringify({type:"disable_items", items}));
+  closeSheet('disableSheet');
+}
+
+function openEnableSheet(){
+  enableSelection = new Set();
+  const body = document.getElementById('enableBody');
+  const keys = Object.keys(unavailable).filter(k => k.startsWith(DEST+"|"));
+  if(keys.length===0){ body.innerHTML = `<div class="empty">Недоступных позиций нет</div>`; document.getElementById('enableSheet').classList.add('open'); return; }
+  let html = "";
+  keys.forEach(key => {
+    const name = key.slice(DEST.length+1);
+    const info = unavailable[key];
+    const safe = name.replace(/'/g,"\\'");
+    html += `<div class="pick-item" id="en-${cssSafe(name)}">
+      <div class="pick-row" onclick="toggleEnable('${safe}')">
+        <span class="name">${name}</span>
+        <span class="check"></span>
+      </div>
+      ${info && info.comment ? `<div class="pick-existing">Причина: ${info.comment}</div>` : ''}
+    </div>`;
+  });
+  body.innerHTML = html;
+  document.getElementById('enableSheet').classList.add('open');
+}
+function toggleEnable(name){
+  const el = document.getElementById('en-'+cssSafe(name));
+  if(enableSelection.has(name)){ enableSelection.delete(name); el.classList.remove('selected'); }
+  else { enableSelection.add(name); el.classList.add('selected'); }
+}
+function confirmEnable(){
+  const names = Array.from(enableSelection);
+  if(names.length===0){ closeSheet('enableSheet'); return; }
+  socket.send(JSON.stringify({type:"enable_items", names}));
+  closeSheet('enableSheet');
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+function isIos(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream; }
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function installApp(){
+  if(isStandalone()){ showAlert("Приложение уже установлено на экран."); return; }
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
+  } else if(isIos()){
+    document.getElementById('iosLock').style.display = 'flex';
+  } else {
+    showAlert("Откройте меню браузера и выберите «Добавить на главный экран» / «Установить приложение».");
+  }
+}
+
+let pendingConfirmCallback = null;
+let pendingPromptCallback = null;
+function showConfirm(question, sub, onYes, danger){
+  document.getElementById('confirmQuestion').textContent = question;
+  const subEl = document.getElementById('confirmSub');
+  if(sub){ subEl.textContent = sub; subEl.style.display = 'block'; }
+  else { subEl.style.display = 'none'; }
+  document.getElementById('confirmInput').style.display = 'none';
+  document.getElementById('confirmCancelBtn').style.display = 'inline-block';
+  document.getElementById('confirmOkBtn').textContent = 'Да';
+  document.getElementById('confirmOkBtn').className = 'confirm-ok' + (danger ? ' danger' : '');
+  pendingConfirmCallback = onYes;
+  pendingPromptCallback = null;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function showAlert(message){
+  document.getElementById('confirmQuestion').textContent = message;
+  document.getElementById('confirmSub').style.display = 'none';
+  document.getElementById('confirmInput').style.display = 'none';
+  document.getElementById('confirmCancelBtn').style.display = 'none';
+  document.getElementById('confirmOkBtn').textContent = 'Понятно';
+  document.getElementById('confirmOkBtn').className = 'confirm-ok';
+  pendingConfirmCallback = null;
+  pendingPromptCallback = null;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function showPrompt(question, defaultValue, onSubmit){
+  document.getElementById('confirmQuestion').textContent = question;
+  document.getElementById('confirmSub').style.display = 'none';
+  const input = document.getElementById('confirmInput');
+  input.style.display = 'block';
+  input.value = defaultValue || '';
+  document.getElementById('confirmCancelBtn').style.display = 'inline-block';
+  document.getElementById('confirmOkBtn').textContent = 'ОК';
+  document.getElementById('confirmOkBtn').className = 'confirm-ok';
+  pendingConfirmCallback = null;
+  pendingPromptCallback = onSubmit;
+  document.getElementById('confirmOverlay').classList.add('open');
+  setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+function confirmYes(){
+  const input = document.getElementById('confirmInput');
+  const value = input.value;
+  document.getElementById('confirmOverlay').classList.remove('open');
+  const cb = pendingConfirmCallback;
+  const pcb = pendingPromptCallback;
+  pendingConfirmCallback = null;
+  pendingPromptCallback = null;
+  if(pcb) pcb(value);
+  else if(cb) cb();
+}
+function confirmNo(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  const pcb = pendingPromptCallback;
+  pendingConfirmCallback = null;
+  pendingPromptCallback = null;
+  if(pcb) pcb(null);
+}
+
+function logoutDevice(){
+  showConfirm("Выйти?", "Уведомления перестанут приходить, пока не введёте PIN снова.", () => {
+    unregisterPush();
+    pushSetupDone = false;
+    clearStaffPin();
+    if(socket) socket.close();
+    showUnlockScreen();
+  });
+}
+async function unregisterPush(){
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(!reg) return;
+    const sub = await reg.pushManager.getSubscription();
+    if(sub){
+      const pushId = localStorage.getItem('garage_push_id_'+ROLE);
+      if(pushId && socket && socket.readyState === WebSocket.OPEN){
+        socket.send(JSON.stringify({type:'unregister_push', pushId}));
+      }
+      await sub.unsubscribe();
+    }
+  }catch(e){ /* best-effort */ }
+}
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+let swRegistration = null;
+async function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+  try{ swRegistration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }); }catch(e){ /* not fatal — installability may be degraded, but the app still works */ }
+}
+registerServiceWorker();
+
+let pushSetupInFlight = false;
+async function setupPush(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if(!vapidPublicKey) return;
+  if(!("Notification" in window) || Notification.permission !== 'granted') return;
+  if(!socket || socket.readyState !== WebSocket.OPEN) return;
+  if(pushSetupInFlight) return;
+  pushSetupInFlight = true;
+  try{
+    const reg = swRegistration || await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+    await navigator.serviceWorker.ready;
+    swRegistration = reg;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
+    }
+    let pushId = localStorage.getItem('garage_push_id_'+ROLE);
+    if(!pushId){ pushId = (crypto.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random())); localStorage.setItem('garage_push_id_'+ROLE, pushId); }
+    socket.send(JSON.stringify({type:'register_push', pushId, subscription: sub.toJSON()}));
+    pushSetupDone = true;
+  }catch(e){
+    pushSetupDone = false;
+  }finally{
+    pushSetupInFlight = false;
+  }
+}
+
+function updateNotifPermBanner(){
+  const banner = document.getElementById('notifPermBanner');
+  if(!banner) return;
+  if(!("Notification" in window)){
+    banner.style.display = 'none';
+    return;
+  }
+  const standalone = isStandalone();
+  const textEl = banner.querySelector('span');
+  const btnEl = banner.querySelector('button');
+  if(Notification.permission === "granted"){
+    banner.style.display = 'none';
+    return;
+  }
+  if(isIos() && !standalone){
+    textEl.textContent = "На iPhone уведомления при выключенном экране работают только из иконки на «Домой». Откройте приложение с иконки и нажмите «Включить».";
+    btnEl.style.display = 'none';
+    banner.style.display = 'flex';
+    return;
+  }
+  if(Notification.permission === "denied"){
+    textEl.textContent = isIos()
+      ? "Уведомления заблокированы — включите вручную: Настройки → Safari/приложение → Уведомления"
+      : "Уведомления заблокированы браузером — откройте значок 🔒 рядом с адресом сайта → Разрешения → Уведомления → Разрешить";
+    btnEl.style.display = 'none';
+  } else {
+    textEl.textContent = "Уведомления выключены — вы можете пропустить заказ";
+    btnEl.style.display = 'inline-block';
+  }
+  banner.style.display = 'flex';
+}
+function requestNotifPermission(){
+  if(!("Notification" in window)) return;
+  Notification.requestPermission().then((perm) => {
+    updateNotifPermBanner();
+    if(perm === 'granted') setupPush();
+  });
+}
+updateNotifPermBanner();
+const APP_VERSION = "17";
+let updateDismissed = false;
+function checkForUpdate(){
+  if(updateDismissed) return;
+  fetch(location.pathname, {cache:'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const m = html.match(/const APP_VERSION = "([^"]+)"/);
+      if(m && m[1] !== APP_VERSION){
+        document.getElementById('updateBanner').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+function applyUpdate(){
+  const url = new URL(location.href);
+  url.searchParams.set('_r', String(Date.now()));
+  location.href = url.pathname + url.search;
+}
+function dismissUpdateBanner(){
+  updateDismissed = true;
+  document.getElementById('updateBanner').style.display = 'none';
+}
+setTimeout(checkForUpdate, 5000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) return;
+  checkForUpdate();
+  updateNotifPermBanner();
+  setupPush();
+});
+
+function updateChangeRoleLink(){
+  const roles = ['waiter','cook','bartender'];
+  const count = roles.filter(r => localStorage.getItem('garage_staff_id_'+r)).length;
+  const link = document.getElementById('changeRoleLink');
+  if(link) link.style.display = count > 1 ? 'inline' : 'none';
+}
+updateChangeRoleLink();
+
+connect();
+setInterval(render, 30000);
+setInterval(tickTimers, 1000);
+</script>
+</body>
+</html>

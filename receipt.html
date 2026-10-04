@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Garage Music Bar — Чек</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{ background:#F3F1EC; color:#1b1b1b; font-family:'Inter',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+  .panel{ width:100%; max-width:400px; background:#fff; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,.12); overflow:hidden; }
+  .body{ padding:26px 26px 10px; }
+  .body h1{ text-align:center; font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px; }
+  .sub{ text-align:center; font-size:12.5px; color:#777; margin-bottom:18px; }
+  .row{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; color:#444; }
+  .hr{ border-top:1px dashed #bbb; margin:12px 0; }
+  .item{ display:flex; justify-content:space-between; font-size:14px; padding:5px 0; }
+  .item .n{ flex:1; padding-right:8px; }
+  .total{ display:flex; justify-content:space-between; font-family:'Fraunces',serif; font-weight:700; font-size:19px; margin-top:10px; }
+  .actions{ display:flex; gap:10px; padding:18px 26px 26px; }
+  .actions button, .actions a{ flex:1; padding:13px; border-radius:12px; border:none; font-weight:700; font-size:13.5px; text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center; }
+  .btn-download{ background:#C79A46; color:#1b1b1b; }
+  .msg{ text-align:center; color:#888; padding:60px 24px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <div id="content" class="msg">Загрузка чека…</div>
+</div>
+
+<script>
+const WS_URL = "wss://api.restorun.kuatov.kz/ws?venue=garage-music-bar";
+const params = new URLSearchParams(location.search);
+const receiptId = params.get('id');
+let receiptData = null;
+
+function fmtMoney(n){ return (n||0).toLocaleString('ru-RU'); }
+
+function render(r){
+  receiptData = r;
+  const el = document.getElementById('content');
+  let html = `<div class="body">
+    <h1>Garage Music Bar</h1>
+    <div class="sub">Стол ${r.table}</div>
+    <div class="row"><span>Открыт</span><span>${new Date(r.openedAt).toLocaleString('ru-RU')}</span></div>
+    <div class="row"><span>Закрыт</span><span>${new Date(r.closedAt).toLocaleString('ru-RU')}</span></div>
+    <div class="hr"></div>`;
+  r.items.forEach(i => {
+    const price = parseInt(String(i.price).replace(/[^\d]/g,''),10) || 0;
+    html += `<div class="item"><span class="n">${i.qty} × ${i.name}</span><span>${fmtMoney(price*i.qty)}</span></div>`;
+  });
+  html += `<div class="hr"></div>
+    <div class="row"><span>Сумма</span><span>${fmtMoney(r.subtotal)} тг</span></div>
+    <div class="row"><span>Обслуживание (10%)</span><span>${fmtMoney(r.service)} тг</span></div>
+    <div class="total"><span>Итого</span><span>${fmtMoney(r.total)} тг</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn-download" onclick="downloadReceipt()">Скачать чек</button>
+  </div>`;
+  el.className = "";
+  el.innerHTML = html;
+}
+
+function downloadReceipt(){
+  if(!receiptData) return;
+  const r = receiptData;
+  let text = `Garage Music Bar — чек\nСтол ${r.table}\nОткрыт: ${new Date(r.openedAt).toLocaleString('ru-RU')}\nЗакрыт: ${new Date(r.closedAt).toLocaleString('ru-RU')}\n\n`;
+  r.items.forEach(i => {
+    const price = parseInt(String(i.price).replace(/[^\d]/g,''),10) || 0;
+    text += `${i.qty} x ${i.name} — ${(price*i.qty).toLocaleString('ru-RU')} тг\n`;
+  });
+  text += `\nСумма: ${r.subtotal.toLocaleString('ru-RU')} тг\nОбслуживание (10%): ${r.service.toLocaleString('ru-RU')} тг\nИтого: ${r.total.toLocaleString('ru-RU')} тг\n`;
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chek-stol-${r.table}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+if(!receiptId){
+  document.getElementById('content').textContent = "Ссылка неполная — не указан номер чека.";
+} else {
+  const socket = new WebSocket(WS_URL);
+  socket.onopen = () => socket.send(JSON.stringify({type:"get_receipt", id:receiptId}));
+  socket.onmessage = (evt) => {
+    const msg = JSON.parse(evt.data);
+    if(msg.type === "receipt_data") render(msg.receipt);
+    if(msg.type === "receipt_not_found") document.getElementById('content').textContent = "Чек не найден — возможно, ссылка устарела.";
+  };
+  socket.onerror = () => { document.getElementById('content').textContent = "Не удалось загрузить чек. Проверьте связь."; };
+}
+</script>
+</body>
+</html>
